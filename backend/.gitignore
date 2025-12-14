@@ -1,4 +1,4 @@
-.env.local   
+.env.local
 pnpm-workspace.yaml
 pnpm-lock.yaml
-./node_modules
+node_modules
