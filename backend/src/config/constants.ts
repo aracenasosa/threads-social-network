@@ -1,1 +1,1 @@
-const si = "";
+export const DB_NAME = "social-network";

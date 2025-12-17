@@ -7,8 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn src/index.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aracenasosa/social-network"
+  },
   "keywords": [],
-  "author": "",
+  "author": "Carlos Aracena",
   "license": "ISC",
   "packageManager": "pnpm@10.25.0",
   "dependencies": {
@@ -19,6 +23,7 @@
     "mongoose": "^9.0.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/mongoose": "^5.11.97",
     "@types/node": "^25.0.1",
