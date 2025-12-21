@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { IUser } from "../types/user.types";
 import { User } from "../models/user.model";
+import {
+  buildMediaUrl,
+  deleteCloudinaryAsset,
+  uploadBufferToCloudinary,
+} from "../utils/cloudinaryUpload";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -12,6 +17,13 @@ export const getUsers = async (req: Request, res: Response) => {
       email: user.email,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      avatarUrl: user.profilePhotoPublicId
+        ? buildMediaUrl({
+            type: "image",
+            publicId: user.profilePhotoPublicId,
+            variant: "thumb",
+          })
+        : "",
     }));
 
     return res.status(200).json(formatUsers);
@@ -23,42 +35,90 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response) => {
   try {
-    const { userName, fullName, email, password, profilePhoto, location } =
-      req.body;
+    const { id } = req.params;
 
-    // Validate email and username
-    const parsedEmail = email.toLowerCase();
-    const parsedUsername = userName.toLowerCase();
-    const userEmail = await User.findOne({ email: parsedEmail });
-    const userUsername = await User.findOne({
-      userName: parsedUsername,
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        userName: user.userName,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     });
+  } catch (error: any) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: `Internal server error: ${error.message}` });
+  }
+};
 
-    // Check if user already exists
+export const createUser = async (req: Request, res: Response) => {
+  let uploadedPublicId: string | null = null;
+
+  try {
+    const { userName, fullName, email, password, location } = req.body;
+
+    const parsedEmail = String(email).toLowerCase();
+    const parsedUsername = String(userName).toLowerCase();
+
+    const userEmail = await User.findOne({ email: parsedEmail });
     if (userEmail) {
       return res
         .status(400)
         .json({ message: "An user with that email already exists" });
     }
 
-    // Check if username already exists
+    const userUsername = await User.findOne({ userName: parsedUsername });
     if (userUsername) {
       return res
         .status(400)
         .json({ message: "An user with that username already exists" });
     }
 
-    // Create new user
+    // ✅ Optional avatar upload
+    let profilePhoto = "";
+    let profilePhotoPublicId = "";
+
+    if (req.file) {
+      const result = await uploadBufferToCloudinary({
+        buffer: req.file.buffer,
+        folder: "social-network/avatars",
+        resourceType: "image",
+      });
+
+      uploadedPublicId = result.public_id;
+      profilePhoto = result.secure_url;
+      profilePhotoPublicId = result.public_id;
+    }
+
     const newUser = await User.create({
       userName: parsedUsername,
       fullName,
       email: parsedEmail,
       password,
-      profilePhoto: profilePhoto || "",
-      location: location || "",
+      location,
+      profilePhoto,
+      profilePhotoPublicId,
     });
+
+    const avatarUrl = newUser.profilePhotoPublicId
+      ? buildMediaUrl({
+          type: "image",
+          publicId: newUser.profilePhotoPublicId,
+          variant: "thumb",
+        })
+      : "";
 
     return res.status(201).json({
       message: "User created successfully",
@@ -67,9 +127,15 @@ export const createUser = async (req: Request, res: Response) => {
         fullName: newUser.fullName,
         userName: newUser.userName,
         email: newUser.email,
+        avatarUrl,
       },
     });
   } catch (error: any) {
+    // rollback avatar upload if user creation fails
+    if (uploadedPublicId) {
+      await deleteCloudinaryAsset(uploadedPublicId, "image").catch(() => null);
+    }
+
     console.log(error);
     return res
       .status(500)
@@ -89,7 +155,7 @@ export const loginUser = async (req: Request, res: Response) => {
         { email: parsedUsernameOrEmail },
         { userName: parsedUsernameOrEmail },
       ],
-    });
+    }).select("+password");
 
     // Check if user already exists
     if (!user) {

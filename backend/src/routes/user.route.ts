@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createUser,
+  getUserById,
   getUsers,
   loginUser,
   logoutUser,
@@ -11,15 +12,22 @@ import {
   validateBody,
   validateRequiredFields,
 } from "../middlewares/validateRequest.middleware";
+import { uploadSingle } from "../middlewares/upload";
+import { validateFormData } from "../middlewares/validateFormData";
 
 const router = express.Router();
 
 router.get("/", getUsers);
 
+router.get("/:id", getUserById);
+
 router.post(
   "/",
-  validateBody,
-  validateRequiredFields(["userName", "fullName", "email", "password"]),
+  uploadSingle.single("profilePhoto"),
+  validateFormData({
+    fields: ["userName", "fullName", "email", "password"],
+    requireFiles: false,
+  }),
   createUser
 );
 

@@ -17,15 +17,18 @@
   "packageManager": "pnpm@10.25.0",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "lodash": "^4.17.21",
-    "mongoose": "^9.0.1"
+    "mongoose": "^9.0.1",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/mongoose": "^5.11.97",
+    "@types/multer": "^2.0.0",
     "@types/node": "^25.0.1",
     "eslint": "^9.39.2",
     "prettier": "^3.7.4",

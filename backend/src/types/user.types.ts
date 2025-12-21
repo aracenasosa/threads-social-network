@@ -4,10 +4,11 @@ export interface IUser extends Document {
   userName: string;
   fullName: string;
   email: string;
-  profilePhoto?: string;
-  location?: string;
   password: string;
   createdAt: Date;
   updatedAt: Date;
+  profilePhoto?: string;
+  location?: string;
+  profilePhotoPublicId?: string;
   comparePassword: (password: string) => Promise<boolean>;
 }

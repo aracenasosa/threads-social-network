@@ -27,38 +27,45 @@ const userSchema = new Schema(
       trim: true,
       lowercase: true,
       validate: {
-        validator: function (v) {
+        validator: function (v: string) {
           return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
         },
-        message: (props) => `${props.value} is not a valid email!`,
+        message: (props: any) => `${props.value} is not a valid email!`,
       },
     },
+
+    // ✅ keep as fallback (secure_url), but publicId is the key for Option A
     profilePhoto: {
       type: String,
       trim: true,
       default: "",
     },
+    profilePhotoPublicId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     location: {
       type: String,
       trim: true,
       default: "",
     },
+
     password: {
       type: String,
       required: true,
       trim: true,
       minLength: [6, "Password must be at least 6 characters long"],
       maxLength: [30, "Password must be at most 30 characters long"],
+      select: false, // ✅ recommended
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-
   this.password = await bcrypt.hash(this.password, 10);
 });
 
