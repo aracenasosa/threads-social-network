@@ -3,8 +3,6 @@ import {
   createUser,
   getUserById,
   getUsers,
-  loginUser,
-  logoutUser,
   removeUser,
   updateUser,
 } from "../controllers/user.controller";
@@ -29,23 +27,8 @@ router.post(
   uploadSingle.single("profilePhoto"),
   validateFormData({
     fields: ["userName", "fullName", "email", "password"],
-    requireFiles: false,
   }),
   createUser
-);
-
-router.post(
-  "/login",
-  validateBody,
-  validateRequiredFields(["userNameOrEmail", "password"]),
-  loginUser
-);
-
-router.post(
-  "/logout",
-  validateBody,
-  validateRequiredFields(["userNameOrEmail"]),
-  logoutUser
 );
 
 router.delete("/delete/:id", removeUser);

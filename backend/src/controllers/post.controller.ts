@@ -9,6 +9,12 @@ import {
 import mongoose from "mongoose";
 import { buildTree, idStr } from "../utils/post";
 import { serializeAuthor } from "../utils/user";
+import {
+  UploadedAsset,
+  MediaByPostMap,
+  UsersByIdMap,
+  FeedItem,
+} from "../types/post.types";
 
 export const createPost = async (req: Request, res: Response) => {
   const { author, text, parentPost } = req.body;
@@ -16,18 +22,14 @@ export const createPost = async (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) || [];
 
   // Keep track of uploaded assets for rollback
-  const uploaded: {
-    publicId: string;
-    resourceType: "image" | "video";
-    url: string;
-  }[] = [];
+  const uploaded: UploadedAsset[] = [];
 
   try {
     // 1️⃣ Create post
     const post = await Post.create({
       author,
       text,
-      parentPost: parentPost || null,
+      parentPost,
     });
 
     // 2️⃣ If this is a reply → increment parent repliesCount
@@ -94,7 +96,7 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const getFeed = async (req: Request, res: Response) => {
   try {
-    const limit = Math.min(Number(req.query.limit ?? 20), 50);
+    const limit = Math.min(Number(req.query.limit ?? 10), 20);
     const order = String(req.query.order ?? "desc") === "asc" ? 1 : -1;
     const cursor = req.query.cursor ? new Date(String(req.query.cursor)) : null;
     const author = req.query.author as string | undefined;
@@ -122,10 +124,7 @@ export const getFeed = async (req: Request, res: Response) => {
       .select("post type publicId url -_id")
       .lean();
 
-    const mediaByPostId = new Map<
-      string,
-      { type: "image" | "video"; publicId?: string; url?: string }[]
-    >();
+    const mediaByPostId: MediaByPostMap = new Map();
 
     for (const m of mediaDocs) {
       const pid = String(m.post);
@@ -137,13 +136,13 @@ export const getFeed = async (req: Request, res: Response) => {
       });
     }
 
-    const items = posts.map((p: any) => ({
+    const items: FeedItem[] = posts.map((p: any) => ({
       _id: p._id,
       text: p.text,
       author: serializeAuthor(
         p.author,
         String(p.populated("author") || p.author)
-      ), // ✅ pass ID for error reporting
+      ),
       likesCount: p.likesCount,
       repliesCount: p.repliesCount,
       createdAt: p.createdAt,
@@ -254,12 +253,12 @@ export const getPostThread = async (req: Request, res: Response) => {
 
     const rootDoc = rows[0];
 
-    const usersById = new Map<string, any>();
+    const usersById: UsersByIdMap = new Map();
     for (const u of rootDoc.threadUsers ?? []) {
       usersById.set(idStr(u._id), u);
     }
 
-    const mediaByPostId = new Map<string, any[]>();
+    const mediaByPostId: MediaByPostMap = new Map();
     for (const m of rootDoc.threadMedia ?? []) {
       const pid = idStr(m.post);
       if (!mediaByPostId.has(pid)) mediaByPostId.set(pid, []);

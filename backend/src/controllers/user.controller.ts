@@ -24,6 +24,7 @@ export const getUsers = async (req: Request, res: Response) => {
             variant: "thumb",
           })
         : "",
+      location: user.location,
     }));
 
     return res.status(200).json(formatUsers);
@@ -60,6 +61,7 @@ export const getUserById = async (req: Request, res: Response) => {
               variant: "thumb",
             })
           : "",
+        location: user.location,
       },
     });
   } catch (error: any) {
@@ -127,6 +129,7 @@ export const createUser = async (req: Request, res: Response) => {
               variant: "thumb",
             })
           : "",
+        location: newUser.location,
       },
     });
   } catch (error: any) {
@@ -137,78 +140,6 @@ export const createUser = async (req: Request, res: Response) => {
       );
     }
 
-    console.log(error);
-    return res
-      .status(500)
-      .json({ message: `Internal server error: ${error.message}` });
-  }
-};
-
-export const loginUser = async (req: Request, res: Response) => {
-  try {
-    const { userNameOrEmail, password } = req.body;
-
-    // Validate email and username
-    const parsedUsernameOrEmail = userNameOrEmail.toLowerCase();
-
-    const user = await User.findOne({
-      $or: [
-        { email: parsedUsernameOrEmail },
-        { userName: parsedUsernameOrEmail },
-      ],
-    }).select("+password");
-
-    // Check if user already exists
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if password is correct
-    const match = await user.comparePassword(password);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    return res.status(200).json({
-      message: "User logged in successfully",
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        userName: user.userName,
-        email: user.email,
-      },
-    });
-  } catch (error: any) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ message: `Internal server error: ${error.message}` });
-  }
-};
-
-export const logoutUser = async (req: Request, res: Response) => {
-  try {
-    const { userNameOrEmail } = req.body;
-
-    // Validate email and username
-    const parsedUsernameOrEmail = userNameOrEmail.toLowerCase();
-
-    const user = await User.findOne({
-      $or: [
-        { email: parsedUsernameOrEmail },
-        { userName: parsedUsernameOrEmail },
-      ],
-    });
-
-    // Check if user already exists
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.status(200).json({
-      message: "User logged out successfully",
-    });
-  } catch (error: any) {
     console.log(error);
     return res
       .status(500)
@@ -315,6 +246,7 @@ export const updateUser = async (req: Request, res: Response) => {
               variant: "thumb",
             })
           : user.profilePhoto || "",
+        location: user.location,
       },
     });
   } catch (error: any) {

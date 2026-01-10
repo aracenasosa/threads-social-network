@@ -1,30 +1,17 @@
 import { serializeMedia } from "./cloudinaryUpload";
 import { serializeAuthor } from "./user";
-
-export interface PostNode {
-  _id: string;
-  parentPost: string | null;
-  text: string;
-  likesCount: number;
-  repliesCount: number;
-  createdAt: any;
-  updatedAt: any;
-  author: any;
-  media: any[];
-  replies: PostNode[];
-}
+import {
+  PostNode,
+  BuildTreeParams,
+  MediaByPostMap,
+  UsersByIdMap,
+} from "../types/post.types";
 
 export function idStr(x: any) {
   return x ? String(x) : "";
 }
 
-export function buildTree(params: {
-  root: any;
-  descendants: any[];
-  usersById: Map<string, any>;
-  mediaByPostId: Map<string, any[]>;
-  order: "asc" | "desc";
-}) {
+export function buildTree(params: BuildTreeParams): PostNode {
   const { root, descendants, usersById, mediaByPostId, order } = params;
 
   const childrenByParent = new Map<string, any[]>();

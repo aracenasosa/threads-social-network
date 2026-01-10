@@ -2,7 +2,7 @@ import multer from "multer";
 import type { Request, Response, NextFunction } from "express";
 
 const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50MB max (videos)
-const MAX_FILES = 10;
+const MAX_FILES = 3;
 
 export const uploadSingle = multer({
   storage: multer.memoryStorage(),

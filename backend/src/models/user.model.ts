@@ -34,7 +34,6 @@ const userSchema = new Schema(
       },
     },
 
-    // ✅ keep as fallback (secure_url), but publicId is the key for Option A
     profilePhoto: {
       type: String,
       trim: true,
@@ -56,9 +55,12 @@ const userSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      minLength: [6, "Password must be at least 6 characters long"],
-      maxLength: [30, "Password must be at most 30 characters long"],
-      select: false, // ✅ recommended
+      select: false,
+    },
+    refreshToken: {
+      type: String,
+      trim: true,
+      default: "",
     },
   },
   { timestamps: true }
@@ -66,7 +68,21 @@ const userSchema = new Schema(
 
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
+
+  // Validate password length BEFORE hashing
+  if (this.password.length < 6) {
+    throw new Error("Password must be at least 6 characters long");
+  }
+  if (this.password.length > 30) {
+    throw new Error("Password must be at most 30 characters long");
+  }
+
   this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.pre("save", async function () {
+  if (!this.isModified("refreshToken")) return;
+  this.refreshToken = await bcrypt.hash(this.refreshToken, 10);
 });
 
 userSchema.methods.comparePassword = async function (
