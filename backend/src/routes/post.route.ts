@@ -6,7 +6,7 @@ import {
 } from "../controllers/post.controller";
 import {
   uploadPostMedia,
-  validatePostMediaLimits,
+  validateTotalUploadSizeMb,
 } from "../middlewares/upload";
 import { validateFormData } from "../middlewares/validateFormData";
 import { authenticateMiddleware } from "../middlewares/auth.middleware";
@@ -64,9 +64,9 @@ route.post(
   "/",
   authenticateMiddleware,
   uploadPostMedia,
-  validatePostMediaLimits,
-  validateFormData({ fields: ["author", "text"], requireFiles: false }),
-  createPost
+  validateTotalUploadSizeMb(40),
+  validateFormData({ fields: ["author"], requireFiles: false }),
+  createPost,
 );
 
 /**

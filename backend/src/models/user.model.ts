@@ -88,7 +88,15 @@ userSchema.pre("save", async function () {
 userSchema.methods.comparePassword = async function (
   password: string
 ): Promise<boolean> {
+  if (!this.password) return false;
   return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.compareRefreshToken = async function (
+  refreshToken: string
+): Promise<boolean> {
+  if (!this.refreshToken) return false;
+  return await bcrypt.compare(refreshToken, this.refreshToken);
 };
 
 export const User = model<IUser>("User", userSchema);

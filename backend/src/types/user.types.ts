@@ -12,4 +12,5 @@ export interface IUser extends Document {
   profilePhotoPublicId?: string;
   refreshToken?: string | null;
   comparePassword: (password: string) => Promise<boolean>;
+  compareRefreshToken: (refreshToken: string) => Promise<boolean>;
 }

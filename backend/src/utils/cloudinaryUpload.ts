@@ -45,17 +45,17 @@ type ImageVariant = "thumb" | "feed" | "full";
 
 const IMAGE_PRESETS: Record<ImageVariant, any[]> = {
   thumb: [
-    { width: 200, crop: "fill", gravity: "auto" },
+    { width: 200, crop: "fill" },
     { quality: "auto" },
     { fetch_format: "auto" },
   ],
   feed: [
-    { width: 900, crop: "limit", gravity: "auto" },
+    { width: 900, crop: "limit" },
     { quality: "auto" },
     { fetch_format: "auto" },
   ],
   full: [
-    { width: 1600, crop: "limit", gravity: "auto" },
+    { width: 1600, crop: "limit" },
     { quality: "auto" },
     { fetch_format: "auto" },
   ],

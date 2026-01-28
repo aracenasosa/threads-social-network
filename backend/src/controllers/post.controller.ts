@@ -25,19 +25,19 @@ export const createPost = async (req: Request, res: Response) => {
   const uploaded: UploadedAsset[] = [];
 
   try {
-    // 1️⃣ Create post
+    // 1. Create post
     const post = await Post.create({
       author,
       text,
       parentPost,
     });
 
-    // 2️⃣ If this is a reply → increment parent repliesCount
+    // 2.If this is a reply → increment parent repliesCount
     if (parentPost) {
       await Post.updateOne({ _id: parentPost }, { $inc: { repliesCount: 1 } });
     }
 
-    // 3️⃣ Upload all media (if any)
+    // 3. Upload all media (if any)
     if (files.length > 0) {
       const uploadResults = await Promise.all(
         files.map(async (file) => {
@@ -67,7 +67,7 @@ export const createPost = async (req: Request, res: Response) => {
         })
       );
 
-      // 4️⃣ Save Media docs (one per file)
+      // 4. Save Media docs (one per file)
       await Media.insertMany(
         uploadResults.map((m) => ({
           post: post._id,
@@ -78,7 +78,7 @@ export const createPost = async (req: Request, res: Response) => {
       );
     }
 
-    // 5️⃣ Return post (and optionally media list)
+    // 5. Return post (and optionally media list)
     const media = await Media.find({ post: post._id }).select("type url -_id");
     return res.status(201).json({ post, media });
   } catch (err) {
@@ -115,7 +115,7 @@ export const getFeed = async (req: Request, res: Response) => {
       .populate(
         "author",
         "_id userName fullName profilePhotoPublicId profilePhoto"
-      ); // ✅ include avatar fields
+      );
 
     const postIds = posts.map((p) => p._id);
 

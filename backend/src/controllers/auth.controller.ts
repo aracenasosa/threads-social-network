@@ -7,13 +7,15 @@ import {
   signRefreshToken,
 } from "../utils/tokens";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 export const getRefreshCookieOptions = () => {
-  const isProd = process.env.NODE_ENV === "development"; // production must be HTTPS
+  // Use secure cookies only in production (when served over HTTPS)
+  const isProd = process.env.NODE_ENV === "production"; // production must be HTTPS
 
   return {
     httpOnly: true as const,
-    secure: isProd, // production must be HTTPS
+    secure: isProd, // secure cookies only over HTTPS in production
     sameSite: "strict" as const, // adjust to "lax" or "none" if cross-domain frontend
     path: "/api/auth/refresh",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days; should align with refresh expiry
@@ -111,12 +113,15 @@ export const refresh = async (req: Request, res: Response) => {
   const userId = payload?.userId;
 
   const user = await User.findById(userId);
-
-  if (!user || !user.refreshToken)
+  if (!user || !user.refreshToken) {
     return res.status(401).json({ message: "Refresh not allowed" });
+  }
 
-  if (user.refreshToken !== refreshToken)
+  // Stored refresh token is hashed with bcrypt; compare hash with raw cookie token
+  const isMatch = await user.compareRefreshToken(refreshToken);
+  if (!isMatch) {
     return res.status(401).json({ message: "Refresh token mismatch" });
+  }
 
   const newAccessToken = signAccessToken({ userId: String(user._id) });
   const newRefreshToken = signRefreshToken({ userId: String(user._id) });
