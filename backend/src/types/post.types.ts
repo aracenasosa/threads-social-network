@@ -50,6 +50,7 @@ export interface FeedItem {
   author: SerializedAuthor;
   likesCount: number;
   repliesCount: number;
+  isLiked?: boolean;
   createdAt: Date;
   updatedAt: Date;
   media: MediaItem[];
@@ -72,6 +73,7 @@ export interface PostNode {
   text: string;
   likesCount: number;
   repliesCount: number;
+  isLiked?: boolean;
   createdAt: Date;
   updatedAt: Date;
   author: SerializedAuthor;
@@ -87,6 +89,7 @@ export interface BuildTreeParams {
   descendants: any[];
   usersById: UsersByIdMap;
   mediaByPostId: MediaByPostMap;
+  likedPostIds?: Set<string>;
   order: "asc" | "desc";
 }
 

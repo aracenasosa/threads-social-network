@@ -9,12 +9,12 @@ export const toggleLike = async (req: Request, res: Response) => {
 
   try {
     const { postId } = req.params;
-    const { userId } = req.body;
+    const userId = req.userId; // Authenticated user from middleware
 
     if (!userId || !postId) {
       return res
         .status(400)
-        .json({ message: "userId and postId are required" });
+        .json({ message: "User ID and Post ID are required" });
     }
 
     const existingLike = await Like.findOne({
@@ -34,7 +34,7 @@ export const toggleLike = async (req: Request, res: Response) => {
       // 2️⃣ Like logic
       await Like.create([{ user: userId, post: postId }], { session });
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: 1 } }).session(
-        session
+        session,
       );
       liked = true;
     }

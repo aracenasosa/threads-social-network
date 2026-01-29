@@ -52,8 +52,7 @@ router.post(
   "/:postId/toggle",
   authenticateMiddleware,
   validateBody,
-  validateRequiredFields(["userId"]),
-  toggleLike
+  toggleLike,
 );
 
 export default router;

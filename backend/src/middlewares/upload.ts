@@ -1,14 +1,6 @@
 import multer from "multer";
 import type { Request, Response, NextFunction } from "express";
 
-// Constants for file upload limits
-const MAX_PHOTO_COUNT = 5;
-const MAX_FILES_COUNT = 5;
-const MAX_VIDEO_COUNT = 2;
-const MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB per photo
-const MAX_VIDEO_SIZE = 20 * 1024 * 1024; // 20MB per video
-const MAX_TOTAL_SIZE = 40 * 1024 * 1024; // 40MB total for all files
-
 // Upload configuration for single profile photos
 export const uploadSingle = multer({
   storage: multer.memoryStorage(),

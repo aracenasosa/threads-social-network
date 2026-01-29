@@ -7,7 +7,8 @@ export function idStr(x: any) {
 }
 
 export function buildTree(params: BuildTreeParams): PostNode {
-  const { root, descendants, usersById, mediaByPostId, order } = params;
+  const { root, descendants, usersById, mediaByPostId, likedPostIds, order } =
+    params;
 
   const childrenByParent = new Map<string, any[]>();
   for (const d of descendants) {
@@ -36,13 +37,14 @@ export function buildTree(params: BuildTreeParams): PostNode {
       text: node.text,
       likesCount: node.likesCount ?? 0,
       repliesCount: node.repliesCount ?? 0,
+      isLiked: likedPostIds?.has(nodeId) ?? false,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
 
-      // ✅ consistent author shape + avatarUrl (throws if author missing)
+      // consistent author shape + avatarUrl (throws if author missing)
       author: serializeAuthor(author, authorId),
 
-      // ✅ images become f_auto/q_auto and sized for full screen
+      // images become f_auto/q_auto and sized for full screen
       media: serializeMedia(mediaByPostId.get(nodeId) ?? [], "full"),
 
       replies: (childrenByParent.get(nodeId) ?? []).map(hydrate),

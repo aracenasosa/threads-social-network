@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Post } from "../models/post.model";
+import { Like } from "../models/like.model";
 import { Media } from "../models/media.model";
 import {
   deleteCloudinaryAsset,
@@ -42,7 +43,7 @@ export const createPost = async (req: Request, res: Response) => {
       const uploadResults = await Promise.all(
         files.map(async (file) => {
           const resourceType: "image" | "video" = file.mimetype.startsWith(
-            "video/"
+            "video/",
           )
             ? "video"
             : "image";
@@ -64,7 +65,7 @@ export const createPost = async (req: Request, res: Response) => {
             url: result.secure_url,
             publicId: result.public_id,
           };
-        })
+        }),
       );
 
       // 4. Save Media docs (one per file)
@@ -74,7 +75,7 @@ export const createPost = async (req: Request, res: Response) => {
           type: m.type,
           url: m.url,
           publicId: m.publicId,
-        }))
+        })),
       );
     }
 
@@ -85,8 +86,8 @@ export const createPost = async (req: Request, res: Response) => {
     // Rollback uploaded assets if something fails mid-way
     await Promise.all(
       uploaded.map((u) =>
-        deleteCloudinaryAsset(u.publicId, u.resourceType).catch(() => null)
-      )
+        deleteCloudinaryAsset(u.publicId, u.resourceType).catch(() => null),
+      ),
     );
 
     console.error(err);
@@ -114,7 +115,7 @@ export const getFeed = async (req: Request, res: Response) => {
       .select("_id author text likesCount repliesCount createdAt updatedAt")
       .populate(
         "author",
-        "_id userName fullName profilePhotoPublicId profilePhoto"
+        "_id userName fullName profilePhotoPublicId profilePhoto",
       );
 
     const postIds = posts.map((p) => p._id);
@@ -141,7 +142,7 @@ export const getFeed = async (req: Request, res: Response) => {
       text: p.text,
       author: serializeAuthor(
         p.author,
-        String(p.populated("author") || p.author)
+        String(p.populated("author") || p.author),
       ),
       likesCount: p.likesCount,
       repliesCount: p.repliesCount,
@@ -243,6 +244,7 @@ export const getPostThread = async (req: Request, res: Response) => {
           descendants: 1,
           threadUsers: 1,
           threadMedia: 1,
+          threadPostIds: 1,
         },
       },
     ]);
@@ -269,12 +271,27 @@ export const getPostThread = async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ Root post needs serialized author/media too
+    const allPostIds = rootDoc.threadPostIds.map((id: any) => String(id));
+
+    // Fetch likes for thread
+    const currentUserId = req.userId;
+    let likedPostIds = new Set<string>();
+
+    if (currentUserId && allPostIds.length > 0) {
+      const likes = await Like.find({
+        user: currentUserId,
+        post: { $in: allPostIds },
+      }).select("post");
+      likedPostIds = new Set(likes.map((l) => String(l.post)));
+    }
+
+    // Root post needs serialized author/media too
     const thread = buildTree({
       root: rootDoc,
       descendants: rootDoc.descendants ?? [],
       usersById,
       mediaByPostId,
+      likedPostIds,
       order,
     });
 
