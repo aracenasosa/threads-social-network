@@ -131,6 +131,7 @@ export function PostMediaGrid({
                     src={item.url}
                     alt={`Post content ${index + 1}`}
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                     className="object-cover pointer-events-none select-none"
                     draggable={false}
                   />

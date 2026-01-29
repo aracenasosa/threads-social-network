@@ -27,6 +27,7 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string;
   location?: string;
+  bio?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -56,4 +57,3 @@ export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
 }
-

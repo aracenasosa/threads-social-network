@@ -51,7 +51,7 @@ export function Sidebar() {
     { icon: Search, label: 'Search', href: '/search' },
     { icon: Plus, label: 'Create', action: () => setIsCreateModalOpen(true) },
     { icon: Heart, label: 'Activity', href: '/activity' },
-    { icon: User, label: 'Profile', href: `/profile/${user?.id}` },
+    { icon: User, label: 'Profile', href: user?.userName ? `/profile/${user.userName}` : '#' },
   ];
 
   return (

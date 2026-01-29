@@ -79,8 +79,8 @@ export default function FeedPage() {
       <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 
       rounded-4xl" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
         {/* Create Post Input */}
-        <div className="border-b border-border p-4" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
-          <div className="flex space-x-3">
+        <div className="p-4 border-b border-white/10" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
+          <div className="flex space-x-3 items-center">
             <Avatar
               src={user?.avatarUrl}
               alt={user?.userName || ''}
@@ -88,17 +88,16 @@ export default function FeedPage() {
               size="md"
             />
             <div className="flex-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-muted-foreground text-left font-normal h-auto py-3 px-4 rounded-full border border-border hover:bg-accent"
+              <div
+                className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer hover:bg-white/5 transition-colors select-none"
                 onClick={() => setIsCreateModalOpen(true)}
               >
                 What&apos;s new?
-              </Button>
+              </div>
             </div>
             <Button
-              variant="default"
-              className="rounded-full"
+              variant="ghost"
+              className="rounded-full bg-white/10 text-foreground hover:bg-white/20 px-6 font-semibold"
               onClick={() => setIsCreateModalOpen(true)}
             >
               Post
@@ -267,7 +266,13 @@ export default function FeedPage() {
             </>
           )}
         </SheetContent>
+
       </Sheet>
+
+      <CreateThreadModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
     </div>
   );
 }

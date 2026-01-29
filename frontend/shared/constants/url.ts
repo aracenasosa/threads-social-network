@@ -16,11 +16,13 @@ export const AUTH_REFRESH_ENDPOINT = "/auth/refresh";
  * User endpoints
  */
 export const USER_BY_ID_ENDPOINT = (userId: string) => `/users/${userId}`;
+export const USER_BY_USERNAME_ENDPOINT = (username: string) =>
+  `/users/username/${username}`;
 
 /**
  * Post endpoints
  */
 export const POST_CREATE_ENDPOINT = "/posts";
 export const POST_FEED_ENDPOINT = "/posts/feed";
-export const POST_THREAD_ENDPOINT = (postId: string) => `/posts/${postId}/thread`;
-
+export const POST_THREAD_ENDPOINT = (postId: string) =>
+  `/posts/${postId}/thread`;

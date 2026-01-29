@@ -1,7 +1,12 @@
 import { create } from "zustand";
 import apiClient from "@/shared/lib/axios";
+import { userService } from "@/services/user.service";
 import axios from "axios";
-import { setAccessToken, removeAccessToken, getAccessToken } from "@/shared/lib/token";
+import {
+  setAccessToken,
+  removeAccessToken,
+  getAccessToken,
+} from "@/shared/lib/token";
 import { decodeToken, isTokenExpired } from "@/shared/lib/jwt";
 import {
   UserProfile,
@@ -16,7 +21,6 @@ import {
   AUTH_REGISTER_ENDPOINT,
   AUTH_LOGOUT_ENDPOINT,
   AUTH_REFRESH_ENDPOINT,
-  USER_BY_ID_ENDPOINT,
 } from "@/shared/constants/url";
 
 export type AuthStatus = "idle" | "checking" | "authenticated" | "guest";
@@ -94,7 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // If signup returns token, auto-login
       if (response.data.accessToken) {
         setAccessToken(response.data.accessToken);
-        
+
         // Convert LoginUser to UserProfile format
         const userProfile: UserProfile | null = response.data.user
           ? {
@@ -105,7 +109,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               avatarUrl: undefined, // Will be fetched if needed
             }
           : null;
-        
+
         set({
           user: userProfile,
           status: "authenticated",
@@ -153,7 +157,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   checkAuth: async () => {
     const currentState = get();
-    
+
     // If we already have a user and a valid token, don't refetch
     const currentToken = getAccessToken();
     if (currentState.user && currentToken && !isTokenExpired(currentToken)) {
@@ -165,7 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     set({ status: "checking" });
-    
+
     // If we have a valid token that's not expired, try to get user info
     if (currentToken && !isTokenExpired(currentToken)) {
       try {
@@ -175,11 +179,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // Only fetch user if we don't already have it or if userId doesn't match
           if (!currentState.user || currentState.user.id !== payload.userId) {
             // Fetch user info
-            const { data } = await apiClient.get<{ user: UserProfile }>(
-              USER_BY_ID_ENDPOINT(payload.userId)
-            );
+            const { user } = await userService.getUserById(payload.userId);
+
             set({
-              user: data.user,
+              user,
               status: "authenticated",
             });
             return;
@@ -214,11 +217,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const payload = decodeToken(newToken);
         if (payload?.userId) {
           // Fetch user info using the new token
-          const { data: userData } = await apiClient.get<{ user: UserProfile }>(
-            USER_BY_ID_ENDPOINT(payload.userId)
-          );
+          // Fetch user info using the new token
+          const { user } = await userService.getUserById(payload.userId);
           set({
-            user: userData.user,
+            user: user,
             status: "authenticated",
           });
         } else {

@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/utils';
 import { Avatar } from '@/components/shared/avatar';
 import { PostActions } from './post-actions';
 import { MoreHorizontal } from 'lucide-react';
+import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Dialog,
@@ -18,7 +19,7 @@ import { PostMediaGrid } from './post-media-grid';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { postService } from '@/services/post.service';
+import { likeService } from '@/services/like.service';
 
 interface PostCardProps {
   post: Post;
@@ -70,22 +71,23 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
         <div className="flex space-x-3">
           {/* Avatar */}
           <div className="shrink-0 relative flex flex-col items-center">
-            <Avatar
-              src={post.author.avatarUrl}
-              alt={post.author.userName}
-              fallback={post.author.fullName}
-              size="md"
-              className="z-10"
-            />
+            <Link href={`/profile/${post.author.userName}`}>
+              <Avatar
+                src={post.author.avatarUrl}
+                alt={post.author.userName}
+                fallback={post.author.fullName}
+                size="md"
+                className="z-10 hover:opacity-80 transition-opacity"
+              />
+            </Link>
             {/* Thread Connector Line */}
             {/* Show line for thread view or if there are replies in feed view 
                 But hide if explicitly requested (e.g. main post in thread view)
             */}
-            {((post.repliesCount > 0 && !isThreadView) || (isThreadView && !hideConnectorLine)) && (
+            {/* Thread Connector Line */}
+            {isThreadView && !hideConnectorLine && (
               <div className={cn(
-                  "w-0.5 bg-white/10 absolute left-1/2 -translate-x-1/2",
-                  isThreadView ? "top-10 bottom-0" : "top-10 h-full" 
-                  // top-10 matches avatar height (h-10)
+                  "w-0.5 bg-white/10 absolute left-1/2 -translate-x-1/2 top-10 bottom-0"
               )} />
             )}
           </div>
@@ -96,14 +98,20 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1 text-sm">
                 {!isThreadView && (
-                    <span className="font-bold text-foreground truncate">
+                    <Link href={`/profile/${post.author.userName}`} className="font-bold text-foreground truncate hover:underline">
                     {post.author.fullName}
-                    </span>
+                    </Link>
                 )}
                 
-                <span className={isThreadView ? "font-bold text-foreground" : "text-muted-foreground"}>
+                <Link 
+                  href={`/profile/${post.author.userName}`}
+                  className={cn(
+                    "hover:underline",
+                    isThreadView ? "font-bold text-foreground" : "text-muted-foreground"
+                  )}
+                >
                   {isThreadView ? post.author.userName : `@${post.author.userName}`}
-                </span>
+                </Link>
 
                 {!isThreadView && (
                     <>
@@ -158,7 +166,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
               onLike={async () => {
                 if (!user) return;
                 try {
-                    await postService.toggleLike(post._id);
+                    await likeService.toggleLike(post._id);
                     queryClient.invalidateQueries({ queryKey: ['feed'] });
                     queryClient.invalidateQueries({ queryKey: ['thread'] });
                 } catch (error) {

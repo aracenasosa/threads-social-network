@@ -12,13 +12,26 @@ import {
 } from "@/shared/constants/url";
 
 export const postService = {
-  getFeed: async (limit: number = 10, cursor?: string) => {
+  getFeed: async (
+    limit: number = 10,
+    cursor?: string,
+    authorId?: string,
+    filterType?: string,
+  ) => {
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
     params.append("order", "desc");
 
     if (cursor) {
       params.append("cursor", cursor);
+    }
+
+    if (authorId) {
+      params.append("author", authorId);
+    }
+
+    if (filterType) {
+      params.append("filterType", filterType);
     }
 
     const { data } = await apiClient.get<FeedResponse>(
@@ -56,15 +69,6 @@ export const postService = {
         },
       },
     );
-    return data;
-  },
-
-  toggleLike: async (postId: string) => {
-    const { data } = await apiClient.post<{
-      message: string;
-      liked: boolean;
-      likesCount: number;
-    }>(`/likes/${postId}/toggle`, {});
     return data;
   },
 };

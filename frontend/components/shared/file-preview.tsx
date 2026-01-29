@@ -34,6 +34,7 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
               src={previewUrl}
               alt={`Preview ${file.name}`}
               fill
+              sizes="(max-width: 768px) 100vw, 200px"
               className="object-cover"
             />
           )}
