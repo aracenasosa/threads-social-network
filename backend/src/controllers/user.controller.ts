@@ -25,6 +25,7 @@ export const getUsers = async (req: Request, res: Response) => {
           })
         : "",
       location: user.location,
+      bio: user.bio,
     }));
 
     return res.status(200).json(formatUsers);
@@ -60,8 +61,46 @@ export const getUserById = async (req: Request, res: Response) => {
               publicId: user.profilePhotoPublicId,
               variant: "thumb",
             })
-          : "",
+          : user.profilePhoto || "",
         location: user.location,
+        bio: user.bio,
+      },
+    });
+  } catch (error: any) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: `Internal server error: ${error.message}` });
+  }
+};
+
+export const getUserByUsername = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ userName: username.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        userName: user.userName,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        avatarUrl: user.profilePhotoPublicId
+          ? buildMediaUrl({
+              type: "image",
+              publicId: user.profilePhotoPublicId,
+              variant: "thumb",
+            })
+          : user.profilePhoto || "",
+        location: user.location,
+        bio: user.bio,
       },
     });
   } catch (error: any) {
@@ -76,7 +115,7 @@ export const createUser = async (req: Request, res: Response) => {
   let profilePhotoPublicId = "";
 
   try {
-    const { userName, fullName, email, password, location } = req.body;
+    const { userName, fullName, email, password, location, bio } = req.body;
 
     const parsedEmail = String(email).toLowerCase();
     const parsedUsername = String(userName).toLowerCase();
@@ -111,6 +150,7 @@ export const createUser = async (req: Request, res: Response) => {
       email: parsedEmail,
       password,
       location,
+      bio,
       profilePhoto,
       profilePhotoPublicId,
     });
@@ -130,13 +170,14 @@ export const createUser = async (req: Request, res: Response) => {
             })
           : "",
         location: newUser.location,
+        bio: newUser.bio,
       },
     });
   } catch (error: any) {
     // rollback avatar upload if user creation fails
     if (profilePhotoPublicId) {
       await deleteCloudinaryAsset(profilePhotoPublicId, "image").catch(
-        () => null
+        () => null,
       );
     }
 
@@ -171,7 +212,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
   try {
     const { id } = req.params;
-    const { userName, fullName, email, password, location } = req.body;
+    const { userName, fullName, email, password, location, bio } = req.body;
 
     const user = await User.findById(id);
 
@@ -205,6 +246,7 @@ export const updateUser = async (req: Request, res: Response) => {
     // ✅ Update other fields
     if (fullName) user.fullName = fullName;
     if (location) user.location = location;
+    if (bio !== undefined) user.bio = bio;
     if (password) user.password = password;
 
     // ✅ Handle avatar update
@@ -224,7 +266,7 @@ export const updateUser = async (req: Request, res: Response) => {
       // ✅ Destroy the previous image from Cloudinary
       if (oldPublicId) {
         await deleteCloudinaryAsset(oldPublicId, "image").catch((err) =>
-          console.error(`Failed to delete old asset ${oldPublicId}:`, err)
+          console.error(`Failed to delete old asset ${oldPublicId}:`, err),
         );
       }
     }
@@ -247,13 +289,14 @@ export const updateUser = async (req: Request, res: Response) => {
             })
           : user.profilePhoto || "",
         location: user.location,
+        bio: user.bio,
       },
     });
   } catch (error: any) {
     // Rollback new upload if save fails
     if (newProfilePhotoPublicId) {
       await deleteCloudinaryAsset(newProfilePhotoPublicId, "image").catch(
-        () => null
+        () => null,
       );
     }
 

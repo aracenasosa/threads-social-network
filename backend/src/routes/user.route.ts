@@ -2,6 +2,7 @@ import express from "express";
 import {
   createUser,
   getUserById,
+  getUserByUsername,
   getUsers,
   removeUser,
   updateUser,
@@ -63,6 +64,29 @@ router.get("/:id", authenticateMiddleware, getUserById);
 
 /**
  * @swagger
+ * /api/users/username/{username}:
+ *   get:
+ *     summary: Get user by username
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User username
+ *     responses:
+ *       200:
+ *         description: User retrieved successfully
+ *       404:
+ *         description: User not found
+ */
+router.get("/username/:username", authenticateMiddleware, getUserByUsername);
+
+/**
+ * @swagger
  * /api/users:
  *   post:
  *     summary: Create a new user
@@ -105,7 +129,7 @@ router.post(
   validateFormData({
     fields: ["userName", "fullName", "email", "password"],
   }),
-  createUser
+  createUser,
 );
 
 /**
@@ -175,7 +199,7 @@ router.patch(
   authenticateMiddleware,
   uploadSingle.single("profilePhoto"),
   validateFormDataIsNotEmpty,
-  updateUser
+  updateUser,
 );
 
 export default router;

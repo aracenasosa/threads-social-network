@@ -48,11 +48,6 @@ const router = Router();
  *       404:
  *         description: Post not found
  */
-router.post(
-  "/:postId/toggle",
-  authenticateMiddleware,
-  validateBody,
-  toggleLike,
-);
+router.post("/:postId/toggle", authenticateMiddleware, toggleLike);
 
 export default router;

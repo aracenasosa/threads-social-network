@@ -27,7 +27,7 @@ export function uploadBufferToCloudinary(params: {
           public_id: result.public_id!,
           resource_type: result.resource_type as "image" | "video",
         });
-      }
+      },
     );
 
     stream.end(buffer);
@@ -36,7 +36,7 @@ export function uploadBufferToCloudinary(params: {
 
 export async function deleteCloudinaryAsset(
   publicId: string,
-  resourceType: "image" | "video"
+  resourceType: "image" | "video",
 ) {
   await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 }
@@ -81,7 +81,7 @@ export function buildMediaUrl(params: {
 
 export function serializeMedia(
   mediaDocs: any[],
-  variant: "thumb" | "feed" | "full" = "feed"
+  variant: "thumb" | "feed" | "full" = "feed",
 ) {
   return mediaDocs.map((m) => ({
     type: m.type,

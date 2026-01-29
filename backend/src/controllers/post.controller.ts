@@ -101,8 +101,16 @@ export const getFeed = async (req: Request, res: Response) => {
     const order = String(req.query.order ?? "desc") === "asc" ? 1 : -1;
     const cursor = req.query.cursor ? new Date(String(req.query.cursor)) : null;
     const author = req.query.author as string | undefined;
+    const filterType = req.query.filterType as string | undefined;
 
-    const filter: any = { parentPost: null };
+    const filter: any = {};
+
+    if (filterType === "replies") {
+      filter.parentPost = { $ne: null };
+    } else {
+      filter.parentPost = null;
+    }
+
     if (author) filter.author = author;
     if (cursor && !Number.isNaN(cursor.getTime())) {
       filter.createdAt = order === -1 ? { $lt: cursor } : { $gt: cursor };
@@ -137,6 +145,18 @@ export const getFeed = async (req: Request, res: Response) => {
       });
     }
 
+    // 3) fetch likes (if user is logged in)
+    const currentUserId = req.userId;
+    let likedPostIds = new Set<string>();
+
+    if (currentUserId && postIds.length > 0) {
+      const likes = await Like.find({
+        user: currentUserId,
+        post: { $in: postIds },
+      }).select("post");
+      likedPostIds = new Set(likes.map((l) => String(l.post)));
+    }
+
     const items: FeedItem[] = posts.map((p: any) => ({
       _id: p._id,
       text: p.text,
@@ -148,6 +168,7 @@ export const getFeed = async (req: Request, res: Response) => {
       repliesCount: p.repliesCount,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
+      isLiked: likedPostIds.has(String(p._id)),
       media: serializeMedia(mediaByPostId.get(String(p._id)) ?? [], "feed"),
     }));
 

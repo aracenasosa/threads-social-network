@@ -50,6 +50,12 @@ const userSchema = new Schema(
       trim: true,
       default: "",
     },
+    bio: {
+      type: String,
+      trim: true,
+      maxLength: [160, "Bio must be at most 160 characters long"],
+      default: "",
+    },
 
     password: {
       type: String,
@@ -63,7 +69,7 @@ const userSchema = new Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 userSchema.pre("save", async function () {
@@ -86,14 +92,14 @@ userSchema.pre("save", async function () {
 });
 
 userSchema.methods.comparePassword = async function (
-  password: string
+  password: string,
 ): Promise<boolean> {
   if (!this.password) return false;
   return await bcrypt.compare(password, this.password);
 };
 
 userSchema.methods.compareRefreshToken = async function (
-  refreshToken: string
+  refreshToken: string,
 ): Promise<boolean> {
   if (!this.refreshToken) return false;
   return await bcrypt.compare(refreshToken, this.refreshToken);
