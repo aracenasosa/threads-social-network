@@ -23,11 +23,9 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login(data);
+    const success = await login(data);
+    if (success) {
       router.push('/feed');
-    } catch (error) {
-      console.error('Login failed:', error);
     }
   };
 

@@ -50,7 +50,7 @@ export function Sidebar() {
     { icon: Home, label: 'Home', href: '/feed' },
     { icon: Search, label: 'Search', href: '/search' },
     { icon: Plus, label: 'Create', action: () => setIsCreateModalOpen(true) },
-    { icon: Heart, label: 'Activity', href: '/activity' },
+    { icon: Heart, label: 'Likes', href: '/likes' },
     { icon: User, label: 'Profile', href: user?.userName ? `/profile/${user.userName}` : '#' },
   ];
 
@@ -66,7 +66,7 @@ export function Sidebar() {
                 alt="Social logo"
                 width={80}
                 height={80}
-                className="object-contain w-[80px] h-[80px]"
+                className="object-contain w-[80px] h-[80px] select-none"
                 priority
               />
             ) : (

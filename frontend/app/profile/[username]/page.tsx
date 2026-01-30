@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '@/components/layout/sidebar';
 import { useAuthStore } from '@/store/auth.store';
 import { userService } from '@/services/user.service';
@@ -11,18 +12,19 @@ import { PostCard } from '@/components/feed/post-card';
 import { Avatar } from '@/components/shared/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { useInView } from 'react-intersection-observer';
+import { 
+  Dialog,   DialogContent,
+  DialogTitle,
+  DialogHeader,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { CreateThreadModal } from '@/components/feed/create-thread-modal';
-import { 
-  Instagram, 
-  BarChart2, 
-  Check, 
-  UserPlus, 
-  Edit2, 
-  Settings,
-  MoreHorizontal
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
+
+import { QUERY_KEYS } from '@/shared/lib/query-keys';
 
 type TabType = 'threads' | 'replies' | 'media' | 'reposts';
 
@@ -30,14 +32,19 @@ export default function ProfilePage() {
   const params = useParams();
   const userName = params.username as string;
   const { user: currentUser } = useAuthStore();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('threads');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImageFullViewOpen, setIsImageFullViewOpen] = useState(false);
+  const { ref, inView } = useInView();
 
   const { data: userData, isLoading: isUserLoading, refetch: refetchUser } = useQuery({
-    queryKey: ['user', userName],
+    queryKey: QUERY_KEYS.user(userName),
     queryFn: () => userService.getUserByUsername(userName),
     enabled: !!userName,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 60 * 60 * 1000, // 60 minutes
   });
 
   const profileUser = userData?.user;
@@ -50,6 +57,12 @@ export default function ProfilePage() {
     hasNextPage,
     isFetchingNextPage
   } = useFeed(10, profileUser?.id, activeTab === 'replies' ? 'replies' : 'threads');
+
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const feedItems = feedData?.pages.flatMap(page => page.items) || [];
 
@@ -108,6 +121,7 @@ export default function ProfilePage() {
                 alt={profileUser.userName}
                 fallback={profileUser.userName} 
                 className="w-20 h-20 border border-white/10" 
+                onClick={profileUser.avatarUrl ? () => setIsImageFullViewOpen(true) : undefined}
             />
           </div>
 
@@ -119,19 +133,13 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {isOwnProfile ? (
+          {isOwnProfile && (
             <Button 
                 variant="outline" 
                 className="w-full mt-6 rounded-xl border-white/20 hover:bg-white/5 text-white font-semibold h-10"
                 onClick={() => setIsEditModalOpen(true)}
             >
                 Edit profile
-            </Button>
-          ) : (
-            <Button 
-                className="w-full mt-6 rounded-xl bg-white text-black hover:bg-white/90 font-semibold h-10"
-            >
-                Follow
             </Button>
           )}
         </div>
@@ -200,14 +208,18 @@ export default function ProfilePage() {
                         )}
                         
                         {hasNextPage && (
-                            <div className="p-4 flex justify-center">
-                                <Button 
-                                    variant="ghost" 
-                                    onClick={() => fetchNextPage()} 
-                                    disabled={isFetchingNextPage}
-                                >
-                                    {isFetchingNextPage ? 'Loading more...' : 'Load more'}
-                                </Button>
+                            <div ref={ref} className="p-4 flex justify-center h-10">
+                                {isFetchingNextPage && (
+                                    <div className="space-y-3 w-full">
+                                        <div className="flex space-x-3">
+                                            <Skeleton className="h-10 w-10 rounded-full" />
+                                            <div className="flex-1 space-y-2">
+                                                <Skeleton className="h-4 w-[200px]" />
+                                                <Skeleton className="h-4 w-full" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -226,13 +238,48 @@ export default function ProfilePage() {
         open={isEditModalOpen} 
         onOpenChange={setIsEditModalOpen} 
         userProfile={profileUser!}
-        onUpdate={() => refetchUser()}
+        onUpdate={() => {
+          refetchUser();
+          queryClient.invalidateQueries({ queryKey: ['feed'] });
+        }}
       />
 
       <CreateThreadModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
       />
+
+      <Dialog open={isImageFullViewOpen} onOpenChange={setIsImageFullViewOpen}>
+        <DialogContent 
+            className="max-w-none border-none bg-transparent p-0 shadow-none overflow-visible flex items-center justify-center h-screen w-screen"
+            showCloseButton={false}
+        >
+          <DialogHeader className="sr-only">
+            <DialogTitle>Profile Picture</DialogTitle>
+            <DialogDescription>Full view of {profileUser.fullName}&apos;s profile picture</DialogDescription>
+          </DialogHeader>
+          
+          <button 
+                onClick={() => setIsImageFullViewOpen(false)}
+                className="fixed top-4 left-4 z-[60] h-10 w-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors cursor-pointer border-2 border-white"
+                aria-label="Close"
+          >
+              <X className="h-5 w-5" />
+          </button>
+
+          <div className="relative aspect-square w-[min(85vh,90vw)] max-w-[600px] rounded-full overflow-hidden border-2 border-white/10 shadow-2xl">
+            <Image 
+              src={profileUser.avatarUrl || ''} 
+              alt={profileUser.userName} 
+              fill 
+              sizes="100vw"
+              className="object-cover object-top"
+              priority
+              unoptimized
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

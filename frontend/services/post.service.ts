@@ -8,6 +8,7 @@ import { CreatePostDTO } from "@/shared/types/post-dto";
 import {
   POST_CREATE_ENDPOINT,
   POST_FEED_ENDPOINT,
+  POST_LIKED_ENDPOINT,
   POST_THREAD_ENDPOINT,
 } from "@/shared/constants/url";
 
@@ -68,6 +69,21 @@ export const postService = {
           "Content-Type": "multipart/form-data",
         },
       },
+    );
+    return data;
+  },
+
+  getLikedPosts: async (limit: number = 10, cursor?: string) => {
+    const params = new URLSearchParams();
+    params.append("limit", limit.toString());
+    params.append("order", "desc");
+
+    if (cursor) {
+      params.append("cursor", cursor);
+    }
+
+    const { data } = await apiClient.get<FeedResponse>(
+      `${POST_LIKED_ENDPOINT}?${params.toString()}`,
     );
     return data;
   },

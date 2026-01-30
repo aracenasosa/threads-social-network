@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
+import { QUERY_KEYS } from '@/shared/lib/query-keys';
+
 export default function ThreadPage() {
   const params = useParams();
   const router = useRouter();
@@ -21,9 +23,11 @@ export default function ThreadPage() {
   const threadId = params.id as string;
 
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['thread', threadId],
+    queryKey: QUERY_KEYS.thread(threadId),
     queryFn: () => postService.getThread(threadId),
     enabled: !!threadId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   const replies = post?.replies || [];

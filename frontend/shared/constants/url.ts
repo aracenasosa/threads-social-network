@@ -24,5 +24,6 @@ export const USER_BY_USERNAME_ENDPOINT = (username: string) =>
  */
 export const POST_CREATE_ENDPOINT = "/posts";
 export const POST_FEED_ENDPOINT = "/posts/feed";
+export const POST_LIKED_ENDPOINT = "/posts/liked";
 export const POST_THREAD_ENDPOINT = (postId: string) =>
   `/posts/${postId}/thread`;

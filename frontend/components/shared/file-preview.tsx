@@ -16,7 +16,7 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
   useEffect(() => {
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       return () => URL.revokeObjectURL(url);
@@ -50,7 +50,18 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
         </div>
       ) : (
         <div className="relative aspect-video rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-          <Video className="h-12 w-12 text-muted-foreground" />
+          {previewUrl ? (
+            <video
+              src={previewUrl}
+              className="w-full h-full object-cover"
+              muted
+              autoPlay
+              loop
+              playsInline
+            />
+          ) : (
+            <Video className="h-12 w-12 text-muted-foreground" />
+          )}
           <div className="absolute top-2 right-2">
             <Button
               type="button"
@@ -61,9 +72,6 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
             >
               <X className="h-4 w-4" />
             </Button>
-          </div>
-          <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
-            {file.name}
           </div>
         </div>
       )}

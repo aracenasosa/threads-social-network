@@ -6,7 +6,7 @@ import { Post } from '@/shared/types/post.types';
 import { cn } from '@/shared/lib/utils';
 import { Avatar } from '@/components/shared/avatar';
 import { PostActions } from './post-actions';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, X } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -19,7 +19,7 @@ import { PostMediaGrid } from './post-media-grid';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
-import { likeService } from '@/services/like.service';
+import { useLikeMutation } from '@/shared/hooks/use-like-mutation';
 
 interface PostCardProps {
   post: Post;
@@ -48,6 +48,13 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
     }
     
     router.push(`/posts/${post._id}/thread`);
+  };
+
+  const likeMutation = useLikeMutation();
+
+  const handleLike = async () => {
+    if (!user) return;
+    likeMutation.mutate(post._id);
   };
 
   const formatDate = (dateString: string) => {
@@ -163,16 +170,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
               repliesCount={post.repliesCount}
               isLiked={post.isLiked}
               onReply={() => setIsReplyModalOpen(true)}
-              onLike={async () => {
-                if (!user) return;
-                try {
-                    await likeService.toggleLike(post._id);
-                    queryClient.invalidateQueries({ queryKey: ['feed'] });
-                    queryClient.invalidateQueries({ queryKey: ['thread'] });
-                } catch (error) {
-                    console.error('Failed to toggle like', error);
-                }
-              }}
+              onLike={handleLike}
             />
           </div>
         </div>
@@ -181,13 +179,27 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
       {/* Media viewer dialog */}
       {post.media && post.media.length > 0 && (
         <Dialog open={isMediaOpen} onOpenChange={setIsMediaOpen}>
-          <DialogContent className="max-w-3xl bg-black p-0 border-none">
+          <DialogContent 
+            fullScreen={true}
+            overlayClassName="bg-black/100"
+            showCloseButton={false}
+          >
             <DialogTitle className="sr-only">Media viewer</DialogTitle>
+            
+            {/* Custom Close Button */}
+            <button
+               onClick={() => setIsMediaOpen(false)}
+               className="absolute top-6 left-6 z-50 p-2 rounded-full bg-black/40 text-white transition-all hover:bg-black/60"
+            >
+                <X className="w-6 h-6" />
+            </button>
+
             <PostMediaGrid
               media={post.media}
               activeIndex={activeMediaIndex}
               onActiveIndexChange={setActiveMediaIndex}
               isFullScreen
+              className="w-full h-full"
             />
           </DialogContent>
         </Dialog>

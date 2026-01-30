@@ -24,12 +24,10 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    try {
-      const { confirmPassword, ...signupData } = data;
-      await signup(signupData);
+    const { confirmPassword, ...signupData } = data;
+    const success = await signup(signupData);
+    if (success) {
       router.push('/feed');
-    } catch (error) {
-      console.error('Signup failed:', error);
     }
   };
 

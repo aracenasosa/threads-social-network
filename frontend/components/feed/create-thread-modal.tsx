@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
 import { useAuthStore } from '@/store/auth.store';
-import { postService } from '@/services/post.service';
+import { useCreatePostMutation } from '@/shared/hooks/use-create-post-mutation';
 import { CreatePostDTO, POST_CONSTRAINTS } from '@/shared/types/post-dto';
 import {
   Dialog,
@@ -153,6 +154,8 @@ export function CreateThreadModal({
   const canSubmit = entries.some(entry => entry.text.trim() || entry.files.length > 0);
   const isLastEntryEmpty = !entries[entries.length - 1].text.trim() && entries[entries.length - 1].files.length === 0;
 
+  const createPostMutation = useCreatePostMutation();
+
   const handleSubmit = async () => {
     if (!user || !canSubmit) return;
 
@@ -169,10 +172,9 @@ export function CreateThreadModal({
         parentPost: parentPostId,
       };
 
-      const firstPost = await postService.createPost(postData);
+      const firstPost = await createPostMutation.mutateAsync(postData);
 
       // Post subsequent entries as replies to the first post
-      // distinct from chained replies: we want all these to accept the first post as parent
       const rootPostId = firstPost.post._id;
       
       for (let i = 1; i < entries.length; i++) {
@@ -184,15 +186,11 @@ export function CreateThreadModal({
             media: entry.files.length > 0 ? entry.files : undefined,
             parentPost: rootPostId, 
           };
-          await postService.createPost(replyData);
+          await createPostMutation.mutateAsync(replyData);
         }
       }
 
       onOpenChange(false);
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-      if (parentPostId) {
-        queryClient.invalidateQueries({ queryKey: ['thread', parentPostId] });
-      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create thread. Please try again.');
     } finally {
@@ -250,121 +248,21 @@ export function CreateThreadModal({
 
           {/* Thread entries */}
           {entries.map((entry, index) => (
-            <div key={entry.id} className="relative">
-              <div className="flex gap-3 px-4 py-4">
-                {/* Avatar and connector line */}
-                <div className="flex flex-col items-center">
-                  <Avatar
-                    src={user.avatarUrl}
-                    alt={user.userName}
-                    fallback={user.userName}
-                    size="md"
-                  />
-                  {/* Connector line to next entry */}
-                  {index < entries.length - 1 && (
-                    <div className="w-0.5 flex-1 bg-border mt-2" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  {/* Username and entry number */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-foreground text-sm">
-                      {user.userName}
-                    </span>
-                    {entries.length > 1 && (
-                      <span className="text-xs text-muted-foreground">
-                        {index + 1}/{entries.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Text input */}
-                  <textarea
-                    ref={(el) => {
-                      if (el) textareaRefs.current.set(entry.id, el);
-                    }}
-                    value={entry.text}
-                    onChange={(e) => handleTextChange(entry.id, e.target.value)}
-                    placeholder="What's new?"
-                    className={cn(
-                      'w-full bg-transparent border-none outline-none resize-none',
-                      'text-foreground placeholder:text-muted-foreground',
-                      'min-h-[60px] text-[15px] leading-relaxed'
-                    )}
-                    rows={2}
-                  />
-
-                  {/* File previews */}
-                  {entry.files.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      {entry.files.map((file, fileIndex) => (
-                        <FilePreview
-                          key={fileIndex}
-                          file={file}
-                          onRemove={() => removeFile(entry.id, fileIndex)}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Media buttons */}
-                  <div className="flex items-center gap-1 mt-3 relative">
-                    <button
-                      type="button"
-                      onClick={() => triggerFileInput(entry.id, 'image/*')}
-                      className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <ImagePlus className="w-5 h-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => triggerFileInput(entry.id, 'video/*')}
-                      className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Video className="w-5 h-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveEmojiEntryId(activeEmojiEntryId === entry.id ? null : entry.id)}
-                      className={cn(
-                        "p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors",
-                        activeEmojiEntryId === entry.id && "bg-accent text-foreground"
-                      )}
-                    >
-                      <Smile className="w-5 h-5" />
-                    </button>
-                    
-                    {/* Emoji Picker Popover */}
-                    {activeEmojiEntryId === entry.id && (
-                      <div className="absolute top-10 left-0 z-50">
-                        <div className="fixed inset-0 z-40" onClick={() => setActiveEmojiEntryId(null)} />
-                        <div className="relative z-50">
-                           <EmojiPicker
-                              onEmojiClick={handleEmojiClick}
-                              theme={Theme.DARK}
-                              width={320}
-                              height={400}
-                           />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Remove entry button */}
-                {entries.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeEntry(entry.id)}
-                    className="text-muted-foreground hover:text-foreground p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
+            <ThreadEntryItem
+              key={entry.id}
+              entry={entry}
+              index={index}
+              totalEntries={entries.length}
+              user={user}
+              activeEmojiEntryId={activeEmojiEntryId}
+              setActiveEmojiEntryId={setActiveEmojiEntryId}
+              handleTextChange={handleTextChange}
+              handleEmojiClick={handleEmojiClick}
+              triggerFileInput={triggerFileInput}
+              removeFile={removeFile}
+              removeEntry={removeEntry}
+              textareaRefs={textareaRefs}
+            />
           ))}
 
           {/* Add to thread button */}
@@ -407,5 +305,178 @@ export function CreateThreadModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+interface ThreadEntryItemProps {
+  entry: ThreadEntry;
+  index: number;
+  totalEntries: number;
+  user: any;
+  activeEmojiEntryId: string | null;
+  setActiveEmojiEntryId: (id: string | null) => void;
+  handleTextChange: (id: string, text: string) => void;
+  handleEmojiClick: (emojiData: EmojiClickData) => void;
+  triggerFileInput: (id: string, accept: string) => void;
+  removeFile: (entryId: string, fileIndex: number) => void;
+  removeEntry: (id: string) => void;
+  textareaRefs: React.MutableRefObject<Map<string, HTMLTextAreaElement>>;
+}
+
+function ThreadEntryItem({
+  entry,
+  index,
+  totalEntries,
+  user,
+  activeEmojiEntryId,
+  setActiveEmojiEntryId,
+  handleTextChange,
+  handleEmojiClick,
+  triggerFileInput,
+  removeFile,
+  removeEntry,
+  textareaRefs,
+}: ThreadEntryItemProps) {
+  const [emblaRef] = useEmblaCarousel({
+    dragFree: true,
+    align: 'start',
+    containScroll: 'trimSnaps',
+  });
+
+  return (
+    <div className="relative">
+      <div className="flex gap-3 px-4 py-4">
+        {/* Avatar and connector line */}
+        <div className="flex flex-col items-center">
+          <Avatar
+            src={user.avatarUrl}
+            alt={user.userName}
+            fallback={user.userName}
+            size="md"
+          />
+          {/* Connector line to next entry */}
+          {index < totalEntries - 1 && (
+            <div className="w-0.5 flex-1 bg-border mt-2" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Username and entry number */}
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-semibold text-foreground text-sm">
+              {user.userName}
+            </span>
+            {totalEntries > 1 && (
+              <span className="text-xs text-muted-foreground">
+                {index + 1}/{totalEntries}
+              </span>
+            )}
+          </div>
+
+          {/* Text input */}
+          <textarea
+            ref={(el) => {
+              if (el) textareaRefs.current.set(entry.id, el);
+            }}
+            value={entry.text}
+            onChange={(e) => handleTextChange(entry.id, e.target.value)}
+            placeholder="What's new?"
+            className={cn(
+              'w-full bg-transparent border-none outline-none resize-none',
+              'text-foreground placeholder:text-muted-foreground',
+              'min-h-[60px] text-[15px] leading-relaxed'
+            )}
+            rows={2}
+          />
+
+          {/* File previews */}
+          {entry.files.length > 0 && (
+            <div 
+              ref={entry.files.length > 1 ? emblaRef : undefined}
+              className={cn(
+                "mt-3 overflow-hidden",
+                entry.files.length > 1 && "cursor-grab active:cursor-grabbing"
+              )}
+            >
+              <div className={cn(
+                "flex",
+                entry.files.length > 1 ? "gap-3" : "w-full"
+              )}>
+                {entry.files.map((file, fileIndex) => (
+                  <div 
+                    key={fileIndex} 
+                    className={cn(
+                      "relative shrink-0",
+                      entry.files.length > 1 ? "w-[260px]" : "w-full"
+                    )}
+                  >
+                    <FilePreview
+                      file={file}
+                      onRemove={() => removeFile(entry.id, fileIndex)}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Media buttons */}
+          <div className="flex items-center gap-1 mt-3 relative">
+            <button
+              type="button"
+              onClick={() => triggerFileInput(entry.id, 'image/*')}
+              className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ImagePlus className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => triggerFileInput(entry.id, 'video/*')}
+              className="p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Video className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEmojiEntryId(activeEmojiEntryId === entry.id ? null : entry.id)}
+              className={cn(
+                "p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors",
+                activeEmojiEntryId === entry.id && "bg-accent text-foreground"
+              )}
+            >
+              <Smile className="w-5 h-5" />
+            </button>
+            
+            {/* Emoji Picker Popover */}
+            {activeEmojiEntryId === entry.id && (
+              <div className="absolute top-10 left-0 z-50">
+                <div className="fixed inset-0 z-40" onClick={() => setActiveEmojiEntryId(null)} />
+                <div className="relative z-50">
+                   <EmojiPicker
+                      onEmojiClick={handleEmojiClick}
+                      theme={Theme.DARK}
+                      width={320}
+                      height={400}
+                   />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Remove entry button */}
+        {totalEntries > 1 && (
+          <button
+            type="button"
+            onClick={() => removeEntry(entry.id)}
+            className="text-muted-foreground hover:text-foreground p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

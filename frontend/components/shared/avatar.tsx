@@ -9,6 +9,7 @@ interface AvatarProps {
   fallback: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  onClick?: () => void;
 }
 
 const sizeClasses = {
@@ -17,11 +18,28 @@ const sizeClasses = {
   lg: 'h-12 w-12',
 };
 
-export function Avatar({ src, alt, fallback, size = 'md', className }: AvatarProps) {
+export function Avatar({ src, alt, fallback, size = 'md', className, onClick }: AvatarProps) {
   return (
-    <div className={cn('rounded-full bg-primary/10 overflow-hidden relative shrink-0', sizeClasses[size], className)}>
+    <div 
+        className={cn(
+            'rounded-full bg-primary/10 overflow-hidden relative shrink-0', 
+            sizeClasses[size], 
+            onClick && 'cursor-pointer hover:opacity-90 transition-opacity',
+            className
+        )}
+        onClick={onClick}
+    >
       {src ? (
-        <Image src={src} alt={alt} fill sizes="48px" className="object-cover" />
+        <Image 
+          src={src} 
+          alt={alt} 
+          fill 
+          sizes="(max-width: 768px) 48px, 64px" 
+          className="object-cover object-top" 
+          quality={100} 
+          priority 
+          unoptimized={true}
+        />
       ) : (
         <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
           {fallback[0]?.toUpperCase()}

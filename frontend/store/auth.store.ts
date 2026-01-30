@@ -32,8 +32,8 @@ interface AuthState {
   error: string | null;
 
   // Actions
-  login: (credentials: LoginCredentials) => Promise<void>;
-  signup: (data: SignupData) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
+  signup: (data: SignupData) => Promise<boolean>;
   logout: () => Promise<void>;
   setUser: (user: UserProfile | null) => void;
   checkAuth: () => Promise<void>;
@@ -75,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         status: "authenticated",
         isLoading: false,
       });
+      return true;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Login failed";
       set({
@@ -82,7 +83,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         status: "guest",
       });
-      throw error;
+      return false;
     }
   },
 
@@ -115,9 +116,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           status: "authenticated",
           isLoading: false,
         });
+        return true;
       } else {
         set({ isLoading: false });
-        // Maybe keep status as guest if email verification is needed, or authenticated if no verification
+        return true;
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Signup failed";
@@ -125,7 +127,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: errorMessage,
         isLoading: false,
       });
-      throw error;
+      return false;
     }
   },
 

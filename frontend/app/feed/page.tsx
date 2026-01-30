@@ -89,7 +89,7 @@ export default function FeedPage() {
             />
             <div className="flex-1">
               <div
-                className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full transition-colors select-none cursor-text"
                 onClick={() => setIsCreateModalOpen(true)}
               >
                 What&apos;s new?
