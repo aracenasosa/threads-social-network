@@ -21,7 +21,7 @@ export const getUsers = async (req: Request, res: Response) => {
         ? buildMediaUrl({
             type: "image",
             publicId: user.profilePhotoPublicId,
-            variant: "thumb",
+            variant: "feed",
           })
         : "",
       location: user.location,
@@ -59,7 +59,7 @@ export const getUserById = async (req: Request, res: Response) => {
           ? buildMediaUrl({
               type: "image",
               publicId: user.profilePhotoPublicId,
-              variant: "thumb",
+              variant: "feed",
             })
           : user.profilePhoto || "",
         location: user.location,
@@ -96,7 +96,7 @@ export const getUserByUsername = async (req: Request, res: Response) => {
           ? buildMediaUrl({
               type: "image",
               publicId: user.profilePhotoPublicId,
-              variant: "thumb",
+              variant: "feed",
             })
           : user.profilePhoto || "",
         location: user.location,
@@ -166,7 +166,7 @@ export const createUser = async (req: Request, res: Response) => {
           ? buildMediaUrl({
               type: "image",
               publicId: newUser.profilePhotoPublicId,
-              variant: "thumb",
+              variant: "feed",
             })
           : "",
         location: newUser.location,
@@ -285,7 +285,7 @@ export const updateUser = async (req: Request, res: Response) => {
           ? buildMediaUrl({
               type: "image",
               publicId: user.profilePhotoPublicId,
-              variant: "thumb",
+              variant: "feed",
             })
           : user.profilePhoto || "",
         location: user.location,

@@ -3,6 +3,7 @@ import {
   createPost,
   getFeed,
   getPostThread,
+  getLikedPosts,
 } from "../controllers/post.controller";
 import {
   uploadPostMedia,
@@ -106,5 +107,20 @@ route.get("/feed", authenticateMiddleware, getFeed);
  *         description: Post not found
  */
 route.get("/:id/thread", authenticateMiddleware, getPostThread);
+/**
+ * @swagger
+ * /api/posts/liked:
+ *   get:
+ *     summary: Get posts liked by the user
+ *     tags: [Posts]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Liked posts retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+route.get("/liked", authenticateMiddleware, getLikedPosts);
 
 export default route;

@@ -324,3 +324,88 @@ export const getPostThread = async (req: Request, res: Response) => {
       .json({ message: err.message || "Failed to fetch thread" });
   }
 };
+
+export const getLikedPosts = async (req: Request, res: Response) => {
+  try {
+    const currentUserId = req.userId;
+    if (!currentUserId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const limit = Math.min(Number(req.query.limit ?? 10), 20);
+    const order = String(req.query.order ?? "desc") === "asc" ? 1 : -1;
+    const cursor = req.query.cursor ? new Date(String(req.query.cursor)) : null;
+
+    // 1) Find likes by the user
+    // We want to paginate based on the Like's createdAt, or just fetch the posts
+    // For simplicity, we'll find the likes first
+    const likeFilter: any = { user: currentUserId };
+    if (cursor && !Number.isNaN(cursor.getTime())) {
+      likeFilter.createdAt = order === -1 ? { $lt: cursor } : { $gt: cursor };
+    }
+
+    const likes = await Like.find(likeFilter)
+      .sort({ createdAt: order })
+      .limit(limit)
+      .select("post createdAt");
+
+    if (likes.length === 0) {
+      return res.json({ items: [], nextCursor: null });
+    }
+
+    const postIds = likes.map((l) => l.post);
+
+    // 2) fetch posts
+    const posts = await Post.find({ _id: { $in: postIds } }).populate(
+      "author",
+      "_id userName fullName profilePhotoPublicId profilePhoto",
+    );
+
+    // Maintain order from likes
+    const postMap = new Map(posts.map((p) => [String(p._id), p]));
+    const orderedPosts = postIds
+      .map((id) => postMap.get(String(id)))
+      .filter((p) => !!p);
+
+    // 3) fetch media for these posts
+    const mediaDocs = await Media.find({ post: { $in: postIds } })
+      .select("post type publicId url -_id")
+      .lean();
+
+    const mediaByPostId: MediaByPostMap = new Map();
+
+    for (const m of mediaDocs) {
+      const pid = String(m.post);
+      if (!mediaByPostId.has(pid)) mediaByPostId.set(pid, []);
+      mediaByPostId.get(pid)!.push({
+        type: m.type,
+        publicId: m.publicId,
+        url: m.url,
+      });
+    }
+
+    const items: FeedItem[] = orderedPosts.map((p: any) => ({
+      _id: p._id,
+      text: p.text,
+      author: serializeAuthor(
+        p.author,
+        String(p.populated("author") || p.author),
+      ),
+      likesCount: p.likesCount,
+      repliesCount: p.repliesCount,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      isLiked: true, // They are in this list because they are liked
+      media: serializeMedia(mediaByPostId.get(String(p._id)) ?? [], "feed"),
+    }));
+
+    const nextCursor = likes.length ? likes[likes.length - 1].createdAt : null;
+
+    return res.json({ items, nextCursor });
+  } catch (err: any) {
+    console.error(err);
+    return res
+      .status(500)
+      .json({ message: err.message || "Failed to load liked posts" });
+  }
+};
