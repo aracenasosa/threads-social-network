@@ -6,17 +6,22 @@ import {
 import { postService } from "@/services/post.service";
 import { CreatePostDTO } from "@/shared/types/post-dto";
 import { FeedResponse } from "@/shared/types/post.types";
+import { rollbackFeedCaches, FeedSnapshot } from "@/shared/lib/cache-updates";
 
+/**
+ * Hook for creating new posts with optimistic updates.
+ * Uses cache-updates utilities for rollback.
+ */
 export const useCreatePostMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreatePostDTO) => postService.createPost(data),
-    onMutate: async (newPostDTO) => {
+    onMutate: async (newPostDTO): Promise<{ previousFeeds: FeedSnapshot }> => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["feed"] });
 
-      // Snapshot previous feeds
+      // Snapshot previous feeds for rollback
       const previousFeeds = queryClient.getQueriesData<
         InfiniteData<FeedResponse>
       >({ queryKey: ["feed"] });
@@ -30,8 +35,8 @@ export const useCreatePostMutation = () => {
           userName: "you",
           fullName: "You",
           avatarUrl: "",
-        }, // Simplified for preview
-        media: [], // Media handling is complex for optimistic preview (Files vs URLs)
+        },
+        media: [],
         likesCount: 0,
         repliesCount: 0,
         isLiked: false,
@@ -59,7 +64,7 @@ export const useCreatePostMutation = () => {
     onSuccess: (responseData, variables) => {
       const newPost = responseData.post;
 
-      // Replace optimistic post with real one or just sync
+      // Replace optimistic post with real one
       queryClient.setQueriesData<InfiniteData<FeedResponse>>(
         { queryKey: ["feed"] },
         (oldData) => {
@@ -78,19 +83,17 @@ export const useCreatePostMutation = () => {
         },
       );
 
-      // If it's a thread view, we might need a separate invalidation
+      // If it's a thread reply, invalidate the thread
       if (variables.parentPost) {
         queryClient.invalidateQueries({
           queryKey: ["thread", variables.parentPost],
         });
       }
     },
-    onError: (err, newPostDTO, context) => {
-      // Rollback
+    onError: (_err, _newPostDTO, context) => {
+      // Rollback using utility
       if (context?.previousFeeds) {
-        context.previousFeeds.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+        rollbackFeedCaches(queryClient, context.previousFeeds);
       }
     },
     onSettled: () => {
