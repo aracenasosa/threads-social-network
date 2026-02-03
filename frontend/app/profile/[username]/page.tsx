@@ -276,6 +276,7 @@ export default function ProfilePage() {
               className="object-cover object-top"
               priority
               unoptimized
+              referrerPolicy="no-referrer"
             />
           </div>
         </DialogContent>

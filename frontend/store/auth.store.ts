@@ -21,6 +21,7 @@ import {
   AUTH_REGISTER_ENDPOINT,
   AUTH_LOGOUT_ENDPOINT,
   AUTH_REFRESH_ENDPOINT,
+  AUTH_GOOGLE_ENDPOINT,
 } from "@/shared/constants/url";
 
 export type AuthStatus = "idle" | "checking" | "authenticated" | "guest";
@@ -33,6 +34,7 @@ interface AuthState {
 
   // Actions
   login: (credentials: LoginCredentials) => Promise<boolean>;
+  loginWithGoogle: (code: string) => Promise<boolean>;
   signup: (data: SignupData) => Promise<boolean>;
   logout: () => Promise<void>;
   setUser: (user: UserProfile | null) => void;
@@ -78,6 +80,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return true;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Login failed";
+      set({
+        error: errorMessage,
+        isLoading: false,
+        status: "guest",
+      });
+      return false;
+    }
+  },
+
+  loginWithGoogle: async (code: string) => {
+    try {
+      set({ isLoading: true, error: null });
+
+      const { data } = await apiClient.post<AuthResponse>(
+        AUTH_GOOGLE_ENDPOINT,
+        { code },
+      );
+
+      // Store access token
+      setAccessToken(data.accessToken);
+
+      // Convert LoginUser to UserProfile format
+      const userProfile: UserProfile | null = data.user
+        ? {
+            id: data.user.id,
+            fullName: data.user.fullName,
+            userName: data.user.userName,
+            email: data.user.email,
+            avatarUrl: data.user.avatarUrl,
+          }
+        : null;
+
+      // Update auth state
+      set({
+        user: userProfile,
+        status: "authenticated",
+        isLoading: false,
+      });
+      return true;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Google login failed";
       set({
         error: errorMessage,
         isLoading: false,

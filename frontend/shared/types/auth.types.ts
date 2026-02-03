@@ -18,6 +18,7 @@ export interface LoginUser {
   fullName: string;
   userName: string;
   email: string;
+  avatarUrl?: string;
 }
 
 export interface UserProfile {

@@ -39,6 +39,7 @@ export function Avatar({ src, alt, fallback, size = 'md', className, onClick }: 
           quality={100} 
           priority 
           unoptimized={true}
+          referrerPolicy="no-referrer"
         />
       ) : (
         <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">

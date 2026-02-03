@@ -1,22 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/auth.store';
-import { PostCard } from '@/components/feed/post-card';
-import { CreateThreadModal } from '@/components/feed/create-thread-modal';
-import { Avatar } from '@/components/shared/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Sidebar } from '@/components/layout/sidebar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth.store";
+import { PostCard } from "@/components/feed/post-card";
+import { CreateThreadModal } from "@/components/feed/create-thread-modal";
+import { Avatar } from "@/components/shared/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Sidebar } from "@/components/layout/sidebar";
 import {
   Sheet,
   SheetTrigger,
@@ -24,34 +17,33 @@ import {
   SheetHeader,
   SheetFooter,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { useInView } from 'react-intersection-observer';
-import { 
-  Moon, 
-  Sun, 
-  LogOut, 
-  Home, 
-  Search, 
-  Plus, 
-  Heart, 
-  User, 
+} from "@/components/ui/sheet";
+import { useInView } from "react-intersection-observer";
+import {
+  Plus,
   Menu,
-  ChevronDown,
   ChevronRight,
-  ArrowLeft
-} from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { useFeed } from '@/shared/hooks/use-feed';
-import Link from 'next/link';
+  ArrowLeft,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { useFeed } from "@/shared/hooks/use-feed";
 
 export default function FeedPage() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { theme, setTheme } = useTheme();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useFeed(10);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useFeed(10);
   const { ref, inView } = useInView();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [menuSection, setMenuSection] = useState<'root' | 'appearance'>('root');
+  const [menuSection, setMenuSection] = useState<"root" | "appearance">("root");
 
   // Load more when scrolling to the bottom
   useEffect(() => {
@@ -62,7 +54,7 @@ export default function FeedPage() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    router.push("/login");
   };
 
   // Flatten all pages into a single array
@@ -72,19 +64,22 @@ export default function FeedPage() {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
 
-
-
-
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 
-      rounded-4xl" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
+      <main
+        className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 
+      rounded-4xl"
+        style={{ backgroundColor: "rgb(24, 24, 24)" }}
+      >
         {/* Create Post Input */}
-        <div className="p-4 border-b border-white/10" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
+        <div
+          className="p-4 border-b border-white/10"
+          style={{ backgroundColor: "rgb(24, 24, 24)" }}
+        >
           <div className="flex space-x-3 items-center">
             <Avatar
               src={user?.avatarUrl}
-              alt={user?.userName || ''}
-              fallback={user?.userName || ''}
+              alt={user?.userName || ""}
+              fallback={user?.userName || ""}
               size="md"
             />
             <div className="flex-1">
@@ -96,9 +91,15 @@ export default function FeedPage() {
               </div>
             </div>
             <Button
-              variant="ghost"
-              className="rounded-full bg-white/10 text-foreground hover:bg-white/20 px-6 font-semibold"
               onClick={() => setIsCreateModalOpen(true)}
+              className="px-6 font-semibold
+              bg-neutral-900 text-white
+              ring-1 ring-white/10
+              shadow-sm
+              hover:bg-neutral-800 hover:ring-white/15
+              active:scale-[0.98]
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25
+            "
             >
               Post
             </Button>
@@ -129,7 +130,9 @@ export default function FeedPage() {
                 Failed to load feed
               </div>
               <p className="text-muted-foreground text-sm mb-4">
-                {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                {error instanceof Error
+                  ? error.message
+                  : "An unexpected error occurred"}
               </p>
               <Button
                 variant="outline"
@@ -147,7 +150,7 @@ export default function FeedPage() {
               {posts.map((post) => (
                 <PostCard key={post._id} post={post} />
               ))}
-              
+
               {/* Infinite scroll trigger */}
               <div ref={ref} className="h-10 flex items-center justify-center">
                 {isFetchingNextPage && (
@@ -188,8 +191,11 @@ export default function FeedPage() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" onOpenAutoFocus={() => setMenuSection('root')}>
-          {menuSection === 'root' ? (
+        <SheetContent
+          side="bottom"
+          onOpenAutoFocus={() => setMenuSection("root")}
+        >
+          {menuSection === "root" ? (
             <>
               <SheetHeader>
                 <SheetTitle className="text-base">Menu</SheetTitle>
@@ -198,30 +204,48 @@ export default function FeedPage() {
                 <Button
                   variant="ghost"
                   className="justify-between px-3 py-4"
-                  onClick={() => setMenuSection('appearance')}
+                  onClick={() => setMenuSection("appearance")}
                 >
                   <span className="text-sm font-medium">Appearance</span>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+                    <span>{theme === "dark" ? "Dark" : "Light"}</span>
                     <ChevronRight className="h-4 w-4" />
                   </div>
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Insights
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Settings
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Feeds
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Saved
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Liked
                 </Button>
-                <Button variant="ghost" className="justify-start px-3 py-4 text-sm">
+                <Button
+                  variant="ghost"
+                  className="justify-start px-3 py-4 text-sm"
+                >
                   Report a problem
                 </Button>
               </div>
@@ -242,7 +266,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     className="rounded-full p-1 hover:bg-accent"
-                    onClick={() => setMenuSection('root')}
+                    onClick={() => setMenuSection("root")}
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </button>
@@ -258,15 +282,16 @@ export default function FeedPage() {
                     </span>
                   </div>
                   <Switch
-                    checked={theme === 'dark'}
-                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                    checked={theme === "dark"}
+                    onCheckedChange={(checked) =>
+                      setTheme(checked ? "dark" : "light")
+                    }
                   />
                 </div>
               </div>
             </>
           )}
         </SheetContent>
-
       </Sheet>
 
       <CreateThreadModal

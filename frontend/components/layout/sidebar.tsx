@@ -97,10 +97,10 @@ export function Sidebar() {
               >
                 {item.href ? (
                   <Link href={item.href}>
-                    <Icon className={`h-7 w-7 ${isActive ? 'fill-current' : ''}`} />
+                    <Icon className={`size-6 ${isActive ? 'fill-current' : ''}`} />
                   </Link>
                 ) : (
-                  <Icon className="h-7 w-7" />
+                  <Icon className="size-6" />
                 )}
               </Button>
             );
@@ -116,7 +116,7 @@ export function Sidebar() {
                 size="icon"
                 className="h-12 w-12 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground"
               >
-                <Menu className="h-7 w-7" />
+                <Menu className="size-10" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 mb-2">
