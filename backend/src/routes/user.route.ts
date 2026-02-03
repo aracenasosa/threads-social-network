@@ -5,6 +5,7 @@ import {
   getUserByUsername,
   getUsers,
   removeUser,
+  searchUsers,
   updateUser,
 } from "../controllers/user.controller";
 import { uploadSingle } from "../middlewares/upload";
@@ -22,6 +23,29 @@ import { authenticateMiddleware } from "../middlewares/auth.middleware";
  */
 
 const router = express.Router();
+
+/**
+ * @swagger
+ * /api/users/search:
+ *   get:
+ *     summary: Search users by username or full name
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Search query string
+ *     responses:
+ *       200:
+ *         description: List of matching users found
+ *       400:
+ *         description: Missing search query
+ */
+router.get("/search", authenticateMiddleware, searchUsers);
 
 /**
  * @swagger

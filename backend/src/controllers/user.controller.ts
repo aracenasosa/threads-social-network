@@ -60,6 +60,30 @@ export const getUserByUsername = async (req: Request, res: Response) => {
   }
 };
 
+export const searchUsers = async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || typeof q !== "string") {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const users = await User.find({
+      $or: [
+        { userName: { $regex: q, $options: "i" } },
+        { fullName: { $regex: q, $options: "i" } },
+      ],
+    }).limit(20);
+
+    return res.status(200).json({ users: formatUsersResponse(users) });
+  } catch (error: any) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: `Internal server error: ${error.message}` });
+  }
+};
+
 export const createUser = async (req: Request, res: Response) => {
   let profilePhotoPublicId = "";
 
