@@ -19,6 +19,7 @@ export const AUTH_GOOGLE_ENDPOINT = "/auth/google";
 export const USER_BY_ID_ENDPOINT = (userId: string) => `/users/${userId}`;
 export const USER_BY_USERNAME_ENDPOINT = (username: string) =>
   `/users/username/${username}`;
+export const USER_SEARCH_ENDPOINT = "/users/search";
 
 /**
  * Post endpoints
