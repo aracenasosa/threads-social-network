@@ -4,7 +4,7 @@ export interface IUser extends Document {
   userName: string;
   fullName: string;
   email: string;
-  password: string;
+  password?: string;
   createdAt: Date;
   updatedAt: Date;
   profilePhoto?: string;
@@ -12,6 +12,7 @@ export interface IUser extends Document {
   bio?: string;
   profilePhotoPublicId?: string;
   refreshToken?: string | null;
+  googleId?: string;
   comparePassword: (password: string) => Promise<boolean>;
   compareRefreshToken: (refreshToken: string) => Promise<boolean>;
 }

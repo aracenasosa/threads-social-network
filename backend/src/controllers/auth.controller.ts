@@ -7,7 +7,7 @@ import {
   signRefreshToken,
 } from "../utils/tokens";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import { googleClient } from "../utils/googleClient";
 
 export const getRefreshCookieOptions = () => {
   // Use secure cookies only in production (when served over HTTPS)
@@ -96,12 +96,101 @@ export const logoutUser = async (req: Request, res: Response) => {
   }
 };
 
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({ message: "Google code is required" });
+    }
+
+    const { tokens } = await googleClient.getToken(code);
+    const idToken = tokens.id_token;
+
+    if (!idToken) {
+      return res
+        .status(400)
+        .json({ message: "Failed to get ID token from Google" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: "Invalid Google token payload" });
+    }
+
+    const { email, sub: googleId, name, picture } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // If user exists but doesn't have googleId, link it
+      if (!user.googleId) {
+        user.googleId = googleId;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      // Generate unique username based on email or name
+      let baseUsername = email.split("@")[0];
+      // remove special chars
+      baseUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, "");
+
+      let userName = baseUsername;
+      let counter = 1;
+
+      // Check for username collision
+      while (await User.findOne({ userName })) {
+        userName = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      user = await User.create({
+        email,
+        fullName: name || baseUsername,
+        userName,
+        googleId,
+        profilePhoto: picture,
+      });
+    }
+
+    // Generate tokens
+    const accessToken = signAccessToken({ userId: String(user._id) });
+    const refreshToken = signRefreshToken({ userId: String(user._id) });
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, getRefreshCookieOptions());
+
+    return res.status(200).json({
+      message: "Google login successful",
+      accessToken,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        userName: user.userName,
+        email: user.email,
+        avatarUrl: user.profilePhoto,
+      },
+    });
+  } catch (error: any) {
+    console.error("Google login error:", error);
+    return res.status(500).json({ message: "Google login failed" });
+  }
+};
+
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken = (req.cookies?.refreshToken as string | undefined) || "";
 
   if (!refreshToken)
     return res.status(401).json({ message: "Missing refresh token" });
 
+  // ... rest of refresh function is fine, just overwriting to insert googleAuth before it
   let payload;
 
   try {

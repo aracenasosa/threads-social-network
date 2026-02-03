@@ -3,7 +3,12 @@ import {
   validateBody,
   validateRequiredFields,
 } from "../middlewares/validateRequest.middleware";
-import { loginUser, logoutUser, refresh } from "../controllers/auth.controller";
+import {
+  loginUser,
+  logoutUser,
+  refresh,
+  googleLogin,
+} from "../controllers/auth.controller";
 
 /**
  * @swagger
@@ -77,6 +82,32 @@ router.post(
   validateRequiredFields(["userNameOrEmail"]),
   logoutUser,
 );
+
+/**
+ * @swagger
+ * /api/auth/google:
+ *   post:
+ *     summary: Login with Google
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: Google ID Token
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       400:
+ *         description: Invalid token
+ */
+router.post("/google", googleLogin);
 
 /**
  * @swagger

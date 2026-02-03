@@ -59,36 +59,46 @@ const userSchema = new Schema(
 
     password: {
       type: String,
-      required: true,
+      required: false, // Make password optional for Google users
       trim: true,
       select: false,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      select: false,
+      default: "",
     },
     refreshToken: {
       type: String,
       trim: true,
-      default: null,
+      default: "",
     },
   },
   { timestamps: true },
 );
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  // If password is modified AND it exists
+  if (this.isModified("password") && this.password) {
+    // Validate password length BEFORE hashing
+    if (this.password.length < 6) {
+      throw new Error("Password must be at least 6 characters long");
+    }
+    if (this.password.length > 30) {
+      throw new Error("Password must be at most 30 characters long");
+    }
 
-  // Validate password length BEFORE hashing
-  if (this.password.length < 6) {
-    throw new Error("Password must be at least 6 characters long");
+    this.password = await bcrypt.hash(this.password, 10);
   }
-  if (this.password.length > 30) {
-    throw new Error("Password must be at most 30 characters long");
-  }
-
-  this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.pre("save", async function () {
   if (!this.isModified("refreshToken")) return;
-  this.refreshToken = await bcrypt.hash(this.refreshToken, 10);
+  if (this.refreshToken) {
+    this.refreshToken = await bcrypt.hash(this.refreshToken, 10);
+  }
 });
 
 userSchema.methods.comparePassword = async function (
@@ -98,6 +108,7 @@ userSchema.methods.comparePassword = async function (
   return await bcrypt.compare(password, this.password);
 };
 
+// Also update compareRefreshToken to be safe
 userSchema.methods.compareRefreshToken = async function (
   refreshToken: string,
 ): Promise<boolean> {
