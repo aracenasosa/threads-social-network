@@ -29,18 +29,6 @@ src/
 └── app.ts            # App entry point
 ```
 
-src/
-├── 📂 config/ # Configuration files (DB connection, Cloudinary, etc.)
-├── 📂 controllers/ # Request handlers & business logic
-├── 📂 middlewares/ # Custom Express middlewares (Auth, Error handling, Multer)
-├── 📂 models/ # Mongoose schemas & data models
-├── 📂 routes/ # API route definitions
-├── 📂 types/ # TypeScript type definitions and interfaces
-├── 📂 utils/ # Helper functions and utilities
-└── app.ts # App entry point
-
-````
-
 ## 📊 Entity Relationship Diagram (ERD)
 
 The following diagram illustrates the data models and their relationships within our MongoDB database. Although MongoDB is NoSQL, we maintain structured references for data integrity.
@@ -49,12 +37,11 @@ The following diagram illustrates the data models and their relationships within
 
 ### 🔗 Relationships Breakdown
 
--   **Users ↔ Posts (1:N)**: A **User** can create multiple **Posts**. Each post stores a reference to its author's `userId`.
--   **Users ↔ Likes (1:N)**: A **User** can like multiple posts.
--   **Posts ↔ Likes (1:N)**: A **Post** can receive multiple **Likes**. The `likes` collection serves as a join table linking `userId` and `postId`.
--   **Posts ↔ Media (1:N)**: A **Post** can have multiple attached **Media** items (images/videos).
--   **Posts ↔ Posts (Self-Referencing 1:N)**: A **Post** can be a reply to another post (Comment/Thread), referenced via `parentPostId`.
-
+- **Users ↔ Posts (1:N)**: A **User** can create multiple **Posts**. Each post stores a reference to its author's `userId`.
+- **Users ↔ Likes (1:N)**: A **User** can like multiple posts.
+- **Posts ↔ Likes (1:N)**: A **Post** can receive multiple **Likes**. The `likes` collection serves as a join table linking `userId` and `postId`.
+- **Posts ↔ Media (1:N)**: A **Post** can have multiple attached **Media** items (images/videos).
+- **Posts ↔ Posts (Self-Referencing 1:N)**: A **Post** can be a reply to another post (Comment/Thread), referenced via `parentPostId`.
 
 ## 🛠️ Installation & Setup
 
@@ -71,7 +58,7 @@ Ensure you have the following installed:
 ```bash
 git clone https://github.com/aracenasosa/social-network.git
 cd social-network/backend
-````
+```
 
 ### 2. Install Dependencies
 
