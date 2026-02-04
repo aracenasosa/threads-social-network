@@ -29,6 +29,33 @@ src/
 └── app.ts            # App entry point
 ```
 
+src/
+├── 📂 config/ # Configuration files (DB connection, Cloudinary, etc.)
+├── 📂 controllers/ # Request handlers & business logic
+├── 📂 middlewares/ # Custom Express middlewares (Auth, Error handling, Multer)
+├── 📂 models/ # Mongoose schemas & data models
+├── 📂 routes/ # API route definitions
+├── 📂 types/ # TypeScript type definitions and interfaces
+├── 📂 utils/ # Helper functions and utilities
+└── app.ts # App entry point
+
+````
+
+## 📊 Entity Relationship Diagram (ERD)
+
+The following diagram illustrates the data models and their relationships within our MongoDB database. Although MongoDB is NoSQL, we maintain structured references for data integrity.
+
+![Social Network ERD](./publish/img/ERD_social_network.png)
+
+### 🔗 Relationships Breakdown
+
+-   **Users ↔ Posts (1:N)**: A **User** can create multiple **Posts**. Each post stores a reference to its author's `userId`.
+-   **Users ↔ Likes (1:N)**: A **User** can like multiple posts.
+-   **Posts ↔ Likes (1:N)**: A **Post** can receive multiple **Likes**. The `likes` collection serves as a join table linking `userId` and `postId`.
+-   **Posts ↔ Media (1:N)**: A **Post** can have multiple attached **Media** items (images/videos).
+-   **Posts ↔ Posts (Self-Referencing 1:N)**: A **Post** can be a reply to another post (Comment/Thread), referenced via `parentPostId`.
+
+
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
@@ -44,7 +71,7 @@ Ensure you have the following installed:
 ```bash
 git clone https://github.com/aracenasosa/social-network.git
 cd social-network/backend
-```
+````
 
 ### 2. Install Dependencies
 
@@ -107,23 +134,48 @@ Once the server is running, visit:
 
 ### Main Endpoints
 
-| Resource  | Base Path    | Description                                 |
-| :-------- | :----------- | :------------------------------------------ |
-| **Auth**  | `/api/auth`  | Login, Signup, Google Auth, Refresh Token   |
-| **Users** | `/api/users` | Profile management, Search, Follow/Unfollow |
-| **Posts** | `/api/posts` | Create, Read, Delete posts, Feed generation |
-| **Likes** | `/api/likes` | Like/Unlike functionality                   |
+| Resource   | Base Path               | Description                                 |
+| :--------- | :---------------------- | :------------------------------------------ |
+| **Auth**   | `/api/auth`             | Login, Signup, Google Auth, Refresh Token   |
+| **Users**  | `/api/users`            | Profile management, Search, Follow/Unfollow |
+| **Posts**  | `/api/posts`            | Create, Read, Delete posts, Feed generation |
+| **Likes**  | `/api/likes`            | Like/Unlike functionality                   |
+| **Thread** | `/api/posts/:id/thread` | Fetch post thread with recursive replies    |
+
+#### Thread Sorting
+
+The thread endpoint supports a `sort` query parameter to control the order of replies:
+
+- `?sort=top` (Default): Sorts by engagement (Likes + Replies count) descending.
+- `?sort=recent`: Sorts by creation date descending.
 
 ## 🛡️ Key Practices & Patterns
 
+### 🏗️ SOLID Principles
+
+The codebase is designed with SOLID principles in mind to ensure maintainability and scalability:
+
+- **Single Responsibility Principle (SRP)**: Each controller, model, and middleware has a distinct and isolated responsibility.
+- **Open/Closed Principle (OCP)**: The architecture allows for extending functionality (e.g., adding new middlewares or routes) without modifying existing core logic.
+- **Interface Segregation Principle (ISP)**: TypeScript interfaces are specific and not bloated, ensuring components only depend on what they use.
+
+### 🔐 Authentication Architecture (JWT + Cookies)
+
+We implement a robust **Access & Refresh Token** strategy for secure and seamless authentication:
+
+1.  **Access Token**: Short-lived (15m), used for Authorization headers.
+2.  **Refresh Token**: Long-lived (7d), stored securely in an **HTTPOnly Cookie**.
+3.  **Token Rotation**: On every refresh, _both_ tokens are rotated to prevent replay attacks.
+4.  **Security**:
+    - Refresh tokens are stored in the database (hashed) to allow for revocation (remote logout).
+    - The `HttpOnly` flag prevents XSS attacks from stealing the refresh token.
+
+### Other Patterns
+
 - **Type Safety**: Extensive use of TypeScript interfaces and types for reliable code.
-- **Controller-Service Pattern**: (implicitly implemented in controllers) to separate HTTP concerns from core business logic (ready for extraction to services as operations grow).
-- **Security**:
-  - passwords hashed with `bcrypt`.
-  - JWT validation middleware for protected routes.
-  - Google ID token verification.
+- **Controller-Service Pattern**: Business logic is structured to be separable from validation and routing.
 - **Error Handling**: Centralized error middleware to catch and format exceptions consistently.
-- **Validation**: Input validation ensures data integrity before processing.
+- **Validation**: Input validation via Mongoose and custom checks ensures data integrity.
 
 ## 🤝 Contributing
 

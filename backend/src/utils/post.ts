@@ -6,9 +6,17 @@ export function idStr(x: any) {
   return x ? String(x) : "";
 }
 
-export function buildTree(params: BuildTreeParams): PostNode {
-  const { root, descendants, usersById, mediaByPostId, likedPostIds, order } =
-    params;
+export function buildTree(
+  params: BuildTreeParams & { sortBy?: "top" | "recent" },
+): PostNode {
+  const {
+    root,
+    descendants,
+    usersById,
+    mediaByPostId,
+    likedPostIds,
+    sortBy = "top", // Default to top if not provided
+  } = params;
 
   const childrenByParent = new Map<string, any[]>();
   for (const d of descendants) {
@@ -20,9 +28,34 @@ export function buildTree(params: BuildTreeParams): PostNode {
 
   for (const [parentId, arr] of childrenByParent.entries()) {
     arr.sort((a, b) => {
-      const ta = new Date(a.createdAt).getTime();
-      const tb = new Date(b.createdAt).getTime();
-      return order === "asc" ? ta - tb : tb - ta;
+      // Common date comparison
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+
+      if (sortBy === "top") {
+        const likesA = a.likesCount ?? 0;
+        const likesB = b.likesCount ?? 0;
+        const repliesA = a.repliesCount ?? 0;
+        const repliesB = b.repliesCount ?? 0;
+
+        // Calculate engagement score
+        // We can give equal weight or weighted. For now, simple sum of interactions.
+        const scoreA = likesA + repliesA;
+        const scoreB = likesB + repliesB;
+
+        if (scoreA !== scoreB) {
+          return scoreB - scoreA;
+        }
+        // Fallback to recent
+        return dateB - dateA;
+      }
+
+      // Default: "recent" (latest first) or "oldest" (if order='asc' passed manually)
+      // The original code used `order` ('asc' or 'desc').
+      // We will respect `sortBy='recent'` as 'desc'.
+      // But if we want to keep `order` support, we can check it.
+      // For this feature, 'Recent' implies DESC.
+      return dateB - dateA;
     });
   }
 

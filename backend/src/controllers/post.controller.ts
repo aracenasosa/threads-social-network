@@ -194,6 +194,9 @@ export const getPostThread = async (req: Request, res: Response) => {
     const orderParam = String(req.query.order ?? "asc").toLowerCase();
     const order: "asc" | "desc" = orderParam === "desc" ? "desc" : "asc";
 
+    const sortParam = String(req.query.sort ?? "top").toLowerCase();
+    const sortBy: "top" | "recent" = sortParam === "recent" ? "recent" : "top";
+
     const rows = await Post.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(postId) } },
 
@@ -314,7 +317,13 @@ export const getPostThread = async (req: Request, res: Response) => {
       mediaByPostId,
       likedPostIds,
       order,
+      sortBy,
     });
+
+    console.log(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
+    if (rootDoc.descendants?.length > 0) {
+       console.log(`[getPostThread] First Descendant Stats: Likes=${rootDoc.descendants[0].likesCount}, Replies=${rootDoc.descendants[0].repliesCount}`);
+    }
 
     return res.json(thread);
   } catch (err: any) {
