@@ -106,37 +106,37 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0" style={{ backgroundColor: 'rgb(24, 24, 24)' }}>
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
         {/* Profile Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex justify-between items-start">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-white truncate">{profileUser.fullName}</h1>
+              <h1 className="text-2xl font-bold text-foreground truncate">{profileUser.fullName}</h1>
               <div className="flex items-center space-x-2 mt-1">
-                <span className="text-sm text-white">{profileUser.userName}</span>
+                <span className="text-sm text-foreground">{profileUser.userName}</span>
               </div>
             </div>
             <Avatar 
                 src={profileUser.avatarUrl} 
                 alt={profileUser.userName}
                 fallback={profileUser.userName} 
-                className="w-20 h-20 border border-white/10" 
+                className="w-20 h-20 border border-border" 
                 onClick={profileUser.avatarUrl ? () => setIsImageFullViewOpen(true) : undefined}
             />
           </div>
 
           <div className="mt-4 flex flex-col space-y-4">
             {profileUser.bio ? (
-              <p className="text-[15px] text-white whitespace-pre-wrap">{profileUser.bio}</p>
+              <p className="text-[15px] text-foreground whitespace-pre-wrap">{profileUser.bio}</p>
             ) : (
-               <p className="text-[15px] text-white/50 italic">No bio yet.</p>
+               <p className="text-[15px] text-muted-foreground italic">No bio yet.</p>
             )}
           </div>
 
           {isOwnProfile && (
             <Button 
                 variant="outline" 
-                className="w-full mt-6 rounded-xl border-white/20 hover:bg-white/5 text-white font-semibold h-10"
+                className="w-full mt-6 rounded-xl border-border hover:bg-accent text-foreground font-semibold h-10 cursor-pointer"
                 onClick={() => setIsEditModalOpen(true)}
             >
                 Edit profile
@@ -145,19 +145,19 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10 mt-2">
+        <div className="flex border-b border-border mt-2">
             {(['threads', 'replies', 'media', 'reposts'] as TabType[]).map((tab) => (
                 <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={cn(
                         "flex-1 py-3 text-sm font-semibold transition-colors relative",
-                        activeTab === tab ? "text-white" : "text-muted-foreground"
+                        activeTab === tab ? "text-foreground" : "text-muted-foreground"
                     )}
                 >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                     {activeTab === tab && (
-                        <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white transition-all" />
+                        <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-foreground transition-all" />
                     )}
                 </button>
             ))}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
             {(activeTab === 'threads' || activeTab === 'replies') && (
                 <>
                     {isOwnProfile && activeTab === 'threads' && (
-                        <div className="p-4 border-b border-white/10">
+                        <div className="p-4 border-b border-border">
                             <div className="flex space-x-3 items-center">
                                 <Avatar
                                     src={currentUser?.avatarUrl}
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                                 />
                                 <div className="flex-1">
                                     <div
-                                        className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer hover:bg-white/5 transition-colors select-none"
+                                        className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer hover:bg-accent transition-colors select-none"
                                         onClick={() => setIsCreateModalOpen(true)}
                                     >
                                         What&apos;s new?
@@ -185,7 +185,7 @@ export default function ProfilePage() {
                                 </div>
                                 <Button
                                     variant="ghost"
-                                    className="rounded-full bg-white/10 text-foreground hover:bg-white/20 px-6 font-semibold"
+                                    className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 px-6 font-semibold cursor-pointer"
                                     onClick={() => setIsCreateModalOpen(true)}
                                 >
                                     Post
@@ -194,10 +194,10 @@ export default function ProfilePage() {
                         </div>
                     )}
                     
-                    <div className="divide-y divide-white/10">
+                    <div className="divide-y divide-border">
                         {feedItems.length > 0 ? (
                             feedItems.map((post: any) => (
-                                <div key={post._id} className="border-b border-white/5">
+                                <div key={post._id} className="border-b border-border">
                                     <PostCard post={post} />
                                 </div>
                             ))

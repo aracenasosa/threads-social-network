@@ -94,7 +94,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-[#181818] border-white/10 text-white rounded-3xl overflow-hidden p-0">
+      <DialogContent className="sm:max-w-[425px] bg-card border-border text-foreground rounded-3xl overflow-hidden p-0">
         <DialogHeader className="p-6 pb-2">
             <DialogTitle className="sr-only">Edit Profile</DialogTitle>
             <div className="flex justify-between items-start">
@@ -106,10 +106,10 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                                 id="name"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
-                                className="bg-transparent border-none p-0 h-auto text-base text-white focus-visible:ring-0 placeholder:text-muted-foreground"
+                                className="bg-transparent border-none p-0 h-auto text-base text-foreground focus-visible:ring-0 placeholder:text-muted-foreground"
                                 placeholder="+ Name"
                             />
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/10" />
+                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-border" />
                         </div>
                     </div>
 
@@ -120,10 +120,10 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                                 id="username"
                                 value={userName}
                                 onChange={(e) => setUserName(e.target.value)}
-                                className="bg-transparent border-none p-0 h-auto text-base text-white focus-visible:ring-0 placeholder:text-muted-foreground"
+                                className="bg-transparent border-none p-0 h-auto text-base text-foreground focus-visible:ring-0 placeholder:text-muted-foreground"
                                 placeholder="+ Username"
                             />
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/10" />
+                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-border" />
                         </div>
                     </div>
 
@@ -135,9 +135,9 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                                 placeholder="+ Write bio"
                                 value={bio}
                                 onChange={(e) => setBio(e.target.value)}
-                                className="bg-transparent border-none p-0 h-auto text-base text-white focus-visible:ring-0 resize-none min-h-[20px] placeholder:text-muted-foreground"
+                                className="bg-transparent border-none p-0 h-auto text-base text-foreground focus-visible:ring-0 resize-none min-h-[20px] placeholder:text-muted-foreground"
                             />
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/10" />
+                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-border" />
                         </div>
                     </div>
 
@@ -149,9 +149,9 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                                 placeholder="+ Add location"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="bg-transparent border-none p-0 h-auto text-base text-white focus-visible:ring-0 placeholder:text-muted-foreground"
+                                className="bg-transparent border-none p-0 h-auto text-base text-foreground focus-visible:ring-0 placeholder:text-muted-foreground"
                             />
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-white/10" />
+                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-border" />
                         </div>
                     </div>
                 </div>
@@ -165,7 +165,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                         alt={userName}
                         fallback={userName} 
                         size="lg" 
-                        className="w-16 h-16 border border-white/10" 
+                        className="w-16 h-16 border border-border" 
                     />
                     <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Camera size={20} />
@@ -184,7 +184,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
         <div className="p-6 pt-2">
             <Button 
                 onClick={handleSubmit} 
-                className="w-full bg-white text-black hover:bg-white/90 rounded-2xl h-12 font-bold transition-all disabled:opacity-50"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl h-12 font-bold transition-all disabled:opacity-50 cursor-pointer"
                 disabled={isSubmitting}
             >
                 {isSubmitting ? 'Updating...' : 'Done'}

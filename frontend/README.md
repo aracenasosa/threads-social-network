@@ -10,6 +10,7 @@ A modern, responsive, and high-performance web interface for the Social Network 
 - **Real-time-like Experience**: Optimistic updates using TanStack Query.
 - **Rich Interactions**: Animations powered by Framer Motion and standard CSS transitions.
 - **Interactive UI**: Components built with Radix UI primitives for accessibility.
+- **Reply Sorting**: Toggle between "Top" and "Recent" replies in thread views with optimized recursive fetching.
 
 ## 🚀 Tech Stack
 
@@ -88,11 +89,31 @@ pnpm start
 
 ## 📐 Architecture & Patterns
 
-- **Server & Client Components**: We leverage Server Components for initial layout/data where appropriate, and Client Components for interactive elements.
-- **Centralized Services**: All API calls are abstracted in `services/*.service.ts`, keeping components clean.
-- **Optimistic UI**: React Query mutations are configured to update the UI immediately before the server responds (e.g., for Likes), providing a snappy feel.
-- **Global Auth State**: `auth.store.ts` (Zustand) handles user session state across the app.
-- **Tailwind v4**: Uses the latest Tailwind engine for blazing fast styling.
+### 🏗️ SOLID Principles
+
+We adhere to SOLID principles to keep the frontend maintainable:
+
+- **Single Responsibility**: Components are small, focused, and perform one functionality. Hooks encapsulate specific logic (e.g., data fetching, form handling).
+- **Dependency Inversion**: Services are decoupled from UI components. We rely on abstract interfaces for API responses rather than hardcoding logic inside components.
+
+### 🔄 Silent Refresh Mechanism (Axios Interceptors)
+
+We implemented a **Silent Refresh** strategy to ensure a seamless user experience:
+
+1.  **Automatic Token Attachment**: An Axios Request Interceptor attaches the `Access Token` to every outgoing request.
+2.  **Graceful 401 Handling**: An Axios Response Interceptor catches `401 Unauthorized` errors.
+3.  **Token Refresh**:
+    - It pauses the failed request and adds it to a `failedQueue`.
+    - It calls the `/api/auth/refresh` endpoint behind the scenes (sending the HttpOnly cookie).
+    - Upon success, it updates the Access Token in memory and retries all queued requests.
+    - The user never realizes their session was about to expire.
+
+### Other Patterns
+
+- **Server & Client Components**: Usage of Server Components for initial data and Client Components for interactivity.
+- **Optimistic UI**: React Query mutations update the UI _immediately_ (e.g., liking a post) while the server request processes.
+- **Global State**: `Zustand` handles lightweight global state like the User Session.
+- **Tailwind v4**: Latest engine for high-performance styling.
 
 ## 📦 Scripts
 

@@ -8,5 +8,5 @@ export interface FeedParams {
 export const QUERY_KEYS = {
   feed: (params: FeedParams) => ["feed", params] as const,
   user: (username: string) => ["user", username] as const,
-  thread: (id: string) => ["thread", id] as const,
+  thread: (id: string, sort?: string) => ["thread", id, sort] as const,
 };

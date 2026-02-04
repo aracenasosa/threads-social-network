@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Video, X, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { useTheme } from 'next-themes';
 
 interface ThreadEntry {
   id: string;
@@ -39,6 +40,7 @@ export function CreateThreadModal({
 }: CreateThreadModalProps) {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const { resolvedTheme } = useTheme();
   const [entries, setEntries] = useState<ThreadEntry[]>([
     { id: '1', text: '', files: [] }
   ]);
@@ -215,8 +217,7 @@ export function CreateThreadModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-[600px] p-0 max-h-[90vh] flex flex-col gap-0 overflow-hidden"
-        style={{ backgroundColor: 'rgb(24, 24, 24)' }}
+        className="sm:max-w-[600px] p-0 max-h-[90vh] flex flex-col gap-0 overflow-hidden bg-card"
         showCloseButton={false} // Removed the default X button
       >
         <DialogTitle className="sr-only">New Thread</DialogTitle>
@@ -226,7 +227,7 @@ export function CreateThreadModal({
           <Button
             variant="ghost"
             size="sm"
-            className="text-foreground font-medium"
+            className="text-foreground font-medium cursor-pointer"
             onClick={() => onOpenChange(false)}
           >
             Cancel
@@ -271,7 +272,7 @@ export function CreateThreadModal({
             onClick={addEntry}
             disabled={isLastEntryEmpty}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground transition-colors w-full",
+              "flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground transition-colors w-full cursor-pointer",
               isLastEntryEmpty && "opacity-50 cursor-not-allowed hover:text-muted-foreground"
             )}
           >
@@ -298,7 +299,7 @@ export function CreateThreadModal({
           <Button
             onClick={handleSubmit}
             disabled={!canSubmit || isSubmitting}
-            className="rounded-full px-6"
+            className="rounded-full px-6 cursor-pointer"
           >
             {isSubmitting ? 'Posting...' : 'Post'}
           </Button>
@@ -337,6 +338,7 @@ function ThreadEntryItem({
   removeEntry,
   textareaRefs,
 }: ThreadEntryItemProps) {
+  const { resolvedTheme } = useTheme();
   const [emblaRef] = useEmblaCarousel({
     dragFree: true,
     align: 'start',
@@ -442,7 +444,7 @@ function ThreadEntryItem({
               type="button"
               onClick={() => setActiveEmojiEntryId(activeEmojiEntryId === entry.id ? null : entry.id)}
               className={cn(
-                "p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors",
+                "p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
                 activeEmojiEntryId === entry.id && "bg-accent text-foreground"
               )}
             >
@@ -456,7 +458,7 @@ function ThreadEntryItem({
                 <div className="relative z-50">
                    <EmojiPicker
                       onEmojiClick={handleEmojiClick}
-                      theme={Theme.DARK}
+                      theme={resolvedTheme === 'dark' ? Theme.DARK : Theme.LIGHT}
                       width={320}
                       height={400}
                    />

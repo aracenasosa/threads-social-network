@@ -67,13 +67,11 @@ export default function FeedPage() {
       {/* Main Content Area */}
       <main
         className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 
-      rounded-4xl"
-        style={{ backgroundColor: "rgb(24, 24, 24)" }}
+      rounded-4xl bg-card"
       >
         {/* Create Post Input */}
         <div
-          className="p-4 border-b border-white/10"
-          style={{ backgroundColor: "rgb(24, 24, 24)" }}
+          className="p-4 border-b border-border bg-card"
         >
           <div className="flex space-x-3 items-center">
             <Avatar
@@ -93,12 +91,13 @@ export default function FeedPage() {
             <Button
               onClick={() => setIsCreateModalOpen(true)}
               className="px-6 font-semibold
-              bg-neutral-900 text-white
-              ring-1 ring-white/10
+              bg-primary text-primary-foreground
+              border border-border
               shadow-sm
-              hover:bg-neutral-800 hover:ring-white/15
+              hover:bg-primary/90
               active:scale-[0.98]
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+              cursor-pointer
             "
             >
               Post

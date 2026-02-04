@@ -37,13 +37,12 @@ export default function SearchPage() {
       <Sidebar />
 
       <main
-        className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-4xl h-[calc(100vh-40px)]"
-        style={{ backgroundColor: "rgb(24, 24, 24)" }}
+        className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-4xl h-[calc(100vh-40px)] bg-card"
       >
         {/* Header */}
-        <div className="px-4 py-4 flex items-center justify-between sticky top-0 bg-[rgb(24,24,24)] z-10">
+        <div className="px-4 py-4 flex items-center justify-between sticky top-0 bg-card border-b border-border z-10">
           <div className="w-10" /> {/* Spacer for centering */}
-          <h1 className="text-lg font-bold text-white">Search</h1>
+          <h1 className="text-lg font-bold text-foreground">Search</h1>
           <div className="w-10" /> {/* Spacer for centering */}
         </div>
 
@@ -51,11 +50,11 @@ export default function SearchPage() {
         <div className="px-4 pb-2">
           <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 group-focus-within:text-white transition-colors" />
+              <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
             </div>
             <input
               type="text"
-              className="w-full bg-[#101010] text-white rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-white/20 border border-transparent placeholder-gray-500"
+              className="w-full bg-muted text-foreground rounded-2xl py-3 pl-10 pr-4 focus:outline-none focus:ring-1 focus:ring-ring border border-border placeholder-muted-foreground"
               placeholder="Search"
               value={searchQuery}
               onChange={handleSearchChange}
@@ -73,21 +72,21 @@ export default function SearchPage() {
               ) : isError ? (
                 <div className="p-8 text-center text-red-400">Error searching users</div>
               ) : data?.users && data.users.length > 0 ? (
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-border">
                   {data.users.map((user) => (
                     <SearchUserCard key={user.id} user={user} />
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500">No results found for "{debouncedQuery}"</div>
+                <div className="p-8 text-center text-muted-foreground">No results found for "{debouncedQuery}"</div>
               )}
             </div>
           ) : (
             // Default View / Suggestions
             <div className="px-4 py-4">
-              <h2 className="text-white font-semibold mb-4">Follow suggestions</h2>
+              <h2 className="text-foreground font-semibold mb-4">Follow suggestions</h2>
               {/* Could load random users or popular users here */}
-              <div className="text-gray-500 text-sm">
+              <div className="text-muted-foreground text-sm">
                 Type something to search for users...
               </div>
             </div>

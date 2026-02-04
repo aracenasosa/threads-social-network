@@ -18,7 +18,8 @@ const sizeClasses = {
   lg: 'h-12 w-12',
 };
 
-export function Avatar({ src, alt, fallback, size = 'md', className, onClick }: AvatarProps) {
+export function Avatar({ src, alt, fallback = '', size = 'md', className, onClick }: AvatarProps) {
+  const displayFallback = (fallback || alt || '?')[0].toUpperCase();
   return (
     <div 
         className={cn(
@@ -42,8 +43,8 @@ export function Avatar({ src, alt, fallback, size = 'md', className, onClick }: 
           referrerPolicy="no-referrer"
         />
       ) : (
-        <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-          {fallback[0]?.toUpperCase()}
+        <div className="h-full w-full bg-primary/10 flex items-center justify-center text-foreground font-bold text-sm">
+          {displayFallback}
         </div>
       )}
     </div>

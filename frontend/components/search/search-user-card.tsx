@@ -14,7 +14,7 @@ export function SearchUserCard({ user }: SearchUserCardProps) {
   const isOwnProfile = currentUser?.id === user.id;
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 hover:bg-white/5 transition-colors">
+    <div className="flex items-center justify-between py-3 px-4 hover:bg-accent transition-colors">
       <Link href={`/profile/${user.userName}`} className="flex items-center space-x-3 flex-1 min-w-0">
         <Avatar
           src={user.avatarUrl}
@@ -23,7 +23,7 @@ export function SearchUserCard({ user }: SearchUserCardProps) {
           size="md"
         />
         <div className="flex flex-col min-w-0">
-          <span className="font-semibold text-white truncate">{user.userName}</span>
+          <span className="font-semibold text-foreground truncate">{user.userName}</span>
           <span className="text-muted-foreground text-sm truncate">{user.fullName}</span>
         </div>
       </Link>

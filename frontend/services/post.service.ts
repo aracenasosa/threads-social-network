@@ -41,8 +41,11 @@ export const postService = {
     return data;
   },
 
-  getThread: async (threadId: string) => {
-    const { data } = await apiClient.get<Post>(POST_THREAD_ENDPOINT(threadId));
+  getThread: async (threadId: string, sort?: "top" | "recent") => {
+    const url = sort
+      ? `${POST_THREAD_ENDPOINT(threadId)}?sort=${sort}`
+      : POST_THREAD_ENDPOINT(threadId);
+    const { data } = await apiClient.get<Post>(url);
     return data;
   },
 

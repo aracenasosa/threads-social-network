@@ -25,9 +25,10 @@ interface PostCardProps {
   post: Post;
   isThreadView?: boolean;
   hideConnectorLine?: boolean;
+  hideMenu?: boolean;
 }
 
-export function PostCard({ post, isThreadView = false, hideConnectorLine = false }: PostCardProps) {
+export function PostCard({ post, isThreadView = false, hideConnectorLine = false, hideMenu = false }: PostCardProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -70,10 +71,9 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
       <div
         onClick={handlePostClick}
         className={cn(
-          "px-4 py-3 transition-colors cursor-pointer border-b border-border",
+          "px-4 py-3 transition-colors cursor-pointer border-b border-border bg-card",
           isThreadView && "border-none"
         )}
-        style={{ backgroundColor: 'rgb(24, 24, 24)' }}
       >
         <div className="flex space-x-3">
           {/* Avatar */}
@@ -82,7 +82,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
               <Avatar
                 src={post.author.avatarUrl}
                 alt={post.author.userName}
-                fallback={post.author.fullName}
+                fallback={post.author.fullName || post.author.userName}
                 size="md"
                 className="z-10 hover:opacity-80 transition-opacity"
               />
@@ -94,7 +94,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             {/* Thread Connector Line */}
             {isThreadView && !hideConnectorLine && (
               <div className={cn(
-                  "w-0.5 bg-white/10 absolute left-1/2 -translate-x-1/2 top-10 bottom-0"
+                  "w-0.5 bg-border absolute left-1/2 -translate-x-1/2 top-10 bottom-0"
               )} />
             )}
           </div>
@@ -143,7 +143,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
                     </span>
                  )}
               </div>
-              {user?.id === post.author._id && (
+              {!hideMenu && user?.id === post.author._id && (
                 <button className="text-muted-foreground hover:text-primary rounded-full p-1 hover:bg-accent transition-colors">
                   <MoreHorizontal size={18} />
                 </button>
