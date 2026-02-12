@@ -9,6 +9,7 @@ import {
   refresh,
   googleLogin,
 } from "../controllers/auth.controller";
+import { authLimiter } from "../middlewares/rateLimiter";
 
 /**
  * @swagger
@@ -49,6 +50,7 @@ const router = Router();
  */
 router.post(
   "/login",
+  authLimiter,
   validateBody,
   validateRequiredFields(["emailOrUsername", "password"]),
   loginUser,
@@ -107,7 +109,7 @@ router.post(
  *       400:
  *         description: Invalid token
  */
-router.post("/google", googleLogin);
+router.post("/google", authLimiter, googleLogin);
 
 /**
  * @swagger

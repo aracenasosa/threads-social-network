@@ -107,6 +107,10 @@ export const getFeed = async (req: Request, res: Response) => {
 
     if (filterType === "replies") {
       filter.parentPost = { $ne: null };
+    } else if (filterType === "media") {
+      // Find all media docs first to get post IDs
+      const mediaDocs = await Media.find().distinct("post");
+      filter._id = { $in: mediaDocs };
     } else {
       filter.parentPost = null;
     }
@@ -322,7 +326,9 @@ export const getPostThread = async (req: Request, res: Response) => {
 
     console.log(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
     if (rootDoc.descendants?.length > 0) {
-       console.log(`[getPostThread] First Descendant Stats: Likes=${rootDoc.descendants[0].likesCount}, Replies=${rootDoc.descendants[0].repliesCount}`);
+      console.log(
+        `[getPostThread] First Descendant Stats: Likes=${rootDoc.descendants[0].likesCount}, Replies=${rootDoc.descendants[0].repliesCount}`,
+      );
     }
 
     return res.json(thread);

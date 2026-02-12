@@ -1,6 +1,7 @@
 import { User } from "../models/user.model";
 import { Request, Response } from "express";
 import {
+  REFRESH_TOKEN_COOKIE_PATH,
   REFRESH_TOKEN_SECRET,
   TokenPayload,
   signAccessToken,
@@ -17,7 +18,7 @@ export const getRefreshCookieOptions = () => {
     httpOnly: true as const,
     secure: isProd, // secure cookies only over HTTPS in production
     sameSite: "strict" as const, // adjust to "lax" or "none" if cross-domain frontend
-    path: "/api/auth/refresh",
+    path: REFRESH_TOKEN_COOKIE_PATH,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days; should align with refresh expiry
   };
 };
@@ -85,7 +86,7 @@ export const logoutUser = async (req: Request, res: Response) => {
       }
     }
 
-    res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
 
     return res.json({ message: "Logged out successfully" });
   } catch (error: any) {
@@ -187,15 +188,16 @@ export const googleLogin = async (req: Request, res: Response) => {
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken = (req.cookies?.refreshToken as string | undefined) || "";
 
-  if (!refreshToken)
+  if (!refreshToken) {
     return res.status(401).json({ message: "Missing refresh token" });
+  }
 
-  // ... rest of refresh function is fine, just overwriting to insert googleAuth before it
   let payload;
 
   try {
     payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as TokenPayload;
   } catch (error) {
+    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
@@ -203,12 +205,19 @@ export const refresh = async (req: Request, res: Response) => {
 
   const user = await User.findById(userId);
   if (!user || !user.refreshToken) {
-    return res.status(401).json({ message: "Refresh not allowed" });
+    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
+    return res
+      .status(401)
+      .json({
+        message:
+          "Refresh not allowed because user not found or refresh token not found",
+      });
   }
 
   // Stored refresh token is hashed with bcrypt; compare hash with raw cookie token
   const isMatch = await user.compareRefreshToken(refreshToken);
   if (!isMatch) {
+    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
     return res.status(401).json({ message: "Refresh token mismatch" });
   }
 
