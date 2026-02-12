@@ -6,6 +6,7 @@ import { QueryProvider } from "@/shared/providers/query-provider";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
 
 import { GoogleProvider } from "@/shared/providers/google-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,6 +40,7 @@ export default function RootLayout({
           <GoogleProvider>
             <QueryProvider>
               <AuthProvider>{children}</AuthProvider>
+              <Toaster />
             </QueryProvider>
           </GoogleProvider>
         </ThemeProvider>

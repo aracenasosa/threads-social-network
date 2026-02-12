@@ -18,9 +18,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Only check auth if NOT on a public route
     // On public routes, skip auth check to avoid unnecessary refresh calls
     if (!isPublicRoute) {
-      // Don't call checkAuth if we're already authenticated with a user
-      // This prevents infinite loops after login
-      if (status !== 'authenticated' || !user) {
+      // Only call checkAuth if status is idle.
+      // If status is 'guest', we have already checked and failed - let the redirect logic handle it.
+      // If status is 'checking', we are in progress.
+      // If status is 'authenticated', we are good.
+      if (status === 'idle') {
         checkAuth();
       }
     } else if (status === 'idle') {

@@ -2,6 +2,7 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { getAccessToken, setAccessToken, removeAccessToken } from "./token";
 import { API_BASE_URL, AUTH_REFRESH_ENDPOINT } from "@/shared/constants/url";
 import { RefreshTokenResponse } from "@/shared/types/auth.types";
+import { toast } from "sonner";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -115,9 +116,18 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle other errors (400, 403, 404, 500, etc.)
+    if (error.response && error.response.data && !originalRequest._retry) {
+      const errorMessage =
+        (error.response.data as any).message || "An unexpected error occurred";
+      toast.error(errorMessage);
+    } else if (error.message && error.message !== "canceled") {
+      // Network errors or other issues not related to response (unless canceled)
+      toast.error(error.message);
+    }
+
     return Promise.reject(error);
   },
 );
 
 export default apiClient;
-

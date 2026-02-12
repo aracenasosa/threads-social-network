@@ -26,7 +26,7 @@ import { cn } from '@/shared/lib/utils';
 
 import { QUERY_KEYS } from '@/shared/lib/query-keys';
 
-type TabType = 'threads' | 'replies' | 'media' | 'reposts';
+type TabType = 'threads' | 'replies' | 'media';
 
 export default function ProfilePage() {
   const params = useParams();
@@ -50,13 +50,21 @@ export default function ProfilePage() {
   const profileUser = userData?.user;
   const isOwnProfile = currentUser?.id === profileUser?.id;
 
+  const getFilterType = () => {
+    switch (activeTab) {
+      case 'replies': return 'replies';
+      case 'media': return 'media';
+      default: return undefined;
+    }
+  };
+
   const { 
     data: feedData, 
     isLoading: isFeedLoading,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useFeed(10, profileUser?.id, activeTab === 'replies' ? 'replies' : 'threads');
+  } = useFeed(10, profileUser?.id, getFilterType());
 
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -146,12 +154,12 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <div className="flex border-b border-border mt-2">
-            {(['threads', 'replies', 'media', 'reposts'] as TabType[]).map((tab) => (
+            {(['threads', 'replies', 'media'] as TabType[]).map((tab) => (
                 <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={cn(
-                        "flex-1 py-3 text-sm font-semibold transition-colors relative",
+                        "flex-1 py-3 text-sm font-semibold transition-colors relative cursor-pointer",
                         activeTab === tab ? "text-foreground" : "text-muted-foreground"
                     )}
                 >
@@ -164,7 +172,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {(activeTab === 'threads' || activeTab === 'replies') && (
+            {(activeTab === 'threads' || activeTab === 'replies' || activeTab === 'media') && (
                 <>
                     {isOwnProfile && activeTab === 'threads' && (
                         <div className="p-4 border-b border-border">
@@ -226,11 +234,7 @@ export default function ProfilePage() {
                 </>
             )}
 
-            {activeTab !== 'threads' && activeTab !== 'replies' && (
-                <div className="p-12 text-center text-muted-foreground">
-                    Nothing here yet.
-                </div>
-            )}
+
         </div>
       </main>
 

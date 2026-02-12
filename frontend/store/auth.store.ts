@@ -277,6 +277,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Refresh failed (no cookie or expired) - user needs to login
         set({ status: "guest", user: null });
         removeAccessToken();
+        // Force redirect to login to ensure clean state
+        if (
+          typeof window !== "undefined" &&
+          !window.location.pathname.startsWith("/login")
+        ) {
+          window.location.href = "/login";
+        }
       }
     } else {
       // Token exists and is valid, but we couldn't fetch user - mark as guest
