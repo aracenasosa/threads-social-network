@@ -83,8 +83,8 @@ MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?appName=<app_
 # Security (JWT)
 ACCESS_TOKEN_SECRET=your_super_secret_access_key
 REFRESH_TOKEN_SECRET=your_super_secret_refresh_key
-ACCESS_TOKEN_EXPIRES=15m
-REFRESH_TOKEN_EXPIRES=7d
+ACCESS_TOKEN_EXPIRE=15m
+REFRESH_TOKEN_EXPIRE=7d
 
 # Third-Party Services
 # Cloudinary (Image Uploads)
@@ -148,14 +148,18 @@ The codebase is designed with SOLID principles in mind to ensure maintainability
 
 ### 🔐 Authentication Architecture (JWT + Cookies)
 
-We implement a robust **Access & Refresh Token** strategy for secure and seamless authentication:
+We implement a robust **Access & Refresh Token** strategy to balance security with user experience:
 
-1.  **Access Token**: Short-lived (15m), used for Authorization headers.
-2.  **Refresh Token**: Long-lived (7d), stored securely in an **HTTPOnly Cookie**.
-3.  **Token Rotation**: On every refresh, _both_ tokens are rotated to prevent replay attacks.
-4.  **Security**:
-    - Refresh tokens are stored in the database (hashed) to allow for revocation (remote logout).
-    - The `HttpOnly` flag prevents XSS attacks from stealing the refresh token.
+1.  **Access Token**: A short-lived (15m) JWT used for authorization. It is never stored in persistent client-side storage (like `localStorage`) to mitigate XSS risks.
+2.  **Refresh Token**: A long-lived (7d) JWT used to obtain new access tokens. It is stored in a secure, **HTTPOnly**, and **Secure** (in production) cookie.
+3.  **Silent Refresh Flow**:
+    - When the access token expires, the client calls `/api/auth/refresh`.
+    - The backend reads the Refresh Token from the cookie and compares it with a **hashed version** stored in the database.
+    - Upon a successful match, a new Access Token is issued, and a new Refresh Token is generated and updated in both the database and the cookie (**Token Rotation**).
+4.  **Security Measures**:
+    - **HttpOnly & Secure**: Prevents JavaScript-based attacks (XSS) from accessing the refresh token.
+    - **SameSite**: Configured to `Strict` in production and `Lax` in development to balance security and usability across different environments.
+    - **Database-Backed Revocation**: Storing the refresh token (hashed) allows for invalidating sessions manually (e.g., during logout or password changes).
 
 ### Other Patterns
 

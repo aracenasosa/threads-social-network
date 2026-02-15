@@ -4,6 +4,8 @@ import {
   getFeed,
   getPostThread,
   getLikedPosts,
+  updatePost,
+  deletePost,
 } from "../controllers/post.controller";
 import {
   uploadPostMedia,
@@ -122,5 +124,66 @@ route.get("/:id/thread", authenticateMiddleware, getPostThread);
  *         description: Unauthorized
  */
 route.get("/liked", authenticateMiddleware, getLikedPosts);
+
+/**
+ * @swagger
+ * /api/posts/{id}:
+ *   patch:
+ *     summary: Update a post (text only, within 30 minutes)
+ *     tags: [Posts]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Post ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Post updated successfully
+ *       403:
+ *         description: Not allowed (not owner or past 30-minute window)
+ *       404:
+ *         description: Post not found
+ */
+route.patch("/:id", authenticateMiddleware, updatePost);
+
+/**
+ * @swagger
+ * /api/posts/{id}:
+ *   delete:
+ *     summary: Delete a post and all associated data
+ *     tags: [Posts]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Post ID
+ *     responses:
+ *       200:
+ *         description: Post deleted successfully
+ *       403:
+ *         description: Not allowed (not owner)
+ *       404:
+ *         description: Post not found
+ */
+route.delete("/:id", authenticateMiddleware, deletePost);
 
 export default route;

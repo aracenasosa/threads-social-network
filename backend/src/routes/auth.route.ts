@@ -78,12 +78,7 @@ router.post(
  *       200:
  *         description: Logout successful
  */
-router.post(
-  "/logout",
-  validateBody,
-  validateRequiredFields(["userNameOrEmail"]),
-  logoutUser,
-);
+router.post("/logout", logoutUser);
 
 /**
  * @swagger

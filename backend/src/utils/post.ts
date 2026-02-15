@@ -71,6 +71,7 @@ export function buildTree(
       likesCount: node.likesCount ?? 0,
       repliesCount: node.repliesCount ?? 0,
       isLiked: likedPostIds?.has(nodeId) ?? false,
+      isEdited: node.isEdited ?? false,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
 

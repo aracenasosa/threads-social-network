@@ -80,8 +80,37 @@ export const createPost = async (req: Request, res: Response) => {
     }
 
     // 5. Return post (and optionally media list)
-    const media = await Media.find({ post: post._id }).select("type url -_id");
-    return res.status(201).json({ post, media });
+    const mediaDocs = await Media.find({ post: post._id })
+      .select("post type publicId url -_id")
+      .lean();
+
+    // Populate author for the response
+    const populatedPost = await Post.findById(post._id).populate(
+      "author",
+      "_id userName fullName profilePhotoPublicId profilePhoto",
+    );
+
+    if (!populatedPost) {
+      throw new Error("Failed to retrieve created post");
+    }
+
+    const responsePost = {
+      _id: populatedPost._id,
+      text: populatedPost.text,
+      author: serializeAuthor(
+        populatedPost.author,
+        String(populatedPost.populated("author") || populatedPost.author),
+      ),
+      likesCount: populatedPost.likesCount,
+      repliesCount: populatedPost.repliesCount,
+      isEdited: populatedPost.isEdited,
+      createdAt: populatedPost.createdAt,
+      updatedAt: populatedPost.updatedAt,
+      isLiked: false, // Newly created post is not liked by default
+      media: serializeMedia(mediaDocs, "feed"),
+    };
+
+    return res.status(201).json({ post: responsePost });
   } catch (err) {
     // Rollback uploaded assets if something fails mid-way
     await Promise.all(
@@ -124,7 +153,9 @@ export const getFeed = async (req: Request, res: Response) => {
     const posts = await Post.find(filter)
       .sort({ createdAt: order })
       .limit(limit)
-      .select("_id author text likesCount repliesCount createdAt updatedAt")
+      .select(
+        "_id author text likesCount repliesCount isEdited createdAt updatedAt",
+      )
       .populate(
         "author",
         "_id userName fullName profilePhotoPublicId profilePhoto",
@@ -170,6 +201,7 @@ export const getFeed = async (req: Request, res: Response) => {
       ),
       likesCount: p.likesCount,
       repliesCount: p.repliesCount,
+      isEdited: p.isEdited,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
       isLiked: likedPostIds.has(String(p._id)),
@@ -267,6 +299,7 @@ export const getPostThread = async (req: Request, res: Response) => {
           text: 1,
           likesCount: 1,
           repliesCount: 1,
+          isEdited: 1,
           createdAt: 1,
           updatedAt: 1,
           descendants: 1,
@@ -402,6 +435,7 @@ export const getLikedPosts = async (req: Request, res: Response) => {
     const items: FeedItem[] = orderedPosts.map((p: any) => ({
       _id: p._id,
       text: p.text,
+      isEdited: p.isEdited,
       author: serializeAuthor(
         p.author,
         String(p.populated("author") || p.author),
@@ -422,5 +456,159 @@ export const getLikedPosts = async (req: Request, res: Response) => {
     return res
       .status(500)
       .json({ message: err.message || "Failed to load liked posts" });
+  }
+};
+
+/**
+ * Update a post (text only, within 30 minutes)
+ */
+export const updatePost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!text || text.trim().length < 3) {
+      return res
+        .status(400)
+        .json({ message: "Text must be at least 3 characters" });
+    }
+
+    if (text.length > 1000) {
+      return res
+        .status(400)
+        .json({ message: "Text cannot exceed 1000 characters" });
+    }
+
+    // Find the post
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Verify ownership
+    if (post.author.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You can only edit your own posts" });
+    }
+
+    // Check 30-minute window
+    const thirtyMinutesInMs = 30 * 60 * 1000;
+    const timeSinceCreation = Date.now() - new Date(post.createdAt).getTime();
+
+    if (timeSinceCreation > thirtyMinutesInMs) {
+      return res.status(403).json({
+        message: "Posts can only be edited within 30 minutes of creation",
+      });
+    }
+
+    // Update the post
+    post.text = text.trim();
+    post.isEdited = true;
+    await post.save();
+
+    return res.json({
+      message: "Post updated successfully",
+      post: {
+        _id: post._id,
+        text: post.text,
+        isEdited: post.isEdited,
+        updatedAt: post.updatedAt,
+      },
+    });
+  } catch (err: any) {
+    console.error("Update post error:", err);
+    return res.status(500).json({ message: "Failed to update post" });
+  }
+};
+
+/**
+ * Delete a post and all associated data
+ */
+export const deletePost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // Find the post
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Verify ownership
+    if (post.author.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own posts" });
+    }
+
+    // 1. Delete all replies recursively
+    const deleteRepliesRecursive = async (postId: string) => {
+      const replies = await Post.find({ parentPost: postId });
+
+      for (const reply of replies) {
+        // Recursively delete child replies
+        await deleteRepliesRecursive(reply._id.toString());
+
+        // Delete reply's media from Cloudinary
+        const replyMedia = await Media.find({ post: reply._id });
+        for (const media of replyMedia) {
+          if (media.publicId) {
+            await deleteCloudinaryAsset(media.publicId, media.type);
+          }
+        }
+
+        // Delete reply's media documents
+        await Media.deleteMany({ post: reply._id });
+
+        // Delete reply's likes
+        await Like.deleteMany({ post: reply._id });
+
+        // Delete the reply itself
+        await Post.deleteOne({ _id: reply._id });
+      }
+    };
+
+    await deleteRepliesRecursive(id);
+
+    // 2. Delete the post's media from Cloudinary
+    const media = await Media.find({ post: id });
+    for (const mediaItem of media) {
+      if (mediaItem.publicId) {
+        await deleteCloudinaryAsset(mediaItem.publicId, mediaItem.type);
+      }
+    }
+
+    // 3. Delete media documents
+    await Media.deleteMany({ post: id });
+
+    // 4. Delete likes
+    await Like.deleteMany({ post: id });
+
+    // 5. If this is a reply, decrement parent's repliesCount
+    if (post.parentPost) {
+      await Post.updateOne(
+        { _id: post.parentPost },
+        { $inc: { repliesCount: -1 } },
+      );
+    }
+
+    // 6. Delete the post itself
+    await Post.deleteOne({ _id: id });
+
+    return res.json({ message: "Post deleted successfully" });
+  } catch (err: any) {
+    console.error("Delete post error:", err);
+    return res.status(500).json({ message: "Failed to delete post" });
   }
 };

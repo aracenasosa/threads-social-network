@@ -9,6 +9,7 @@ export interface IPost extends Document {
   parentPost?: string | null;
   likesCount: number;
   repliesCount: number;
+  isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,7 @@ export interface FeedItem {
   likesCount: number;
   repliesCount: number;
   isLiked?: boolean;
+  isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
   media: MediaItem[];
@@ -74,6 +76,7 @@ export interface PostNode {
   likesCount: number;
   repliesCount: number;
   isLiked?: boolean;
+  isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
   author: SerializedAuthor;

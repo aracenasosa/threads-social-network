@@ -31,8 +31,13 @@ const postScheme = new Schema(
       type: Number,
       default: 0,
     },
+
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // indexes for feed + replies
