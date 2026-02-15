@@ -16,3 +16,15 @@ export interface IUser extends Document {
   comparePassword: (password: string) => Promise<boolean>;
   compareRefreshToken: (refreshToken: string) => Promise<boolean>;
 }
+
+export interface FormattedUser {
+  id: string;
+  fullName: string;
+  userName: string;
+  email: string;
+  createdAt: Date;
+  updatedAt: Date;
+  avatarUrl: string;
+  location: string;
+  bio: string;
+}

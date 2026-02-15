@@ -7,6 +7,7 @@ export interface IPost extends Document {
   author: string;
   text: string;
   parentPost?: string | null;
+  rootPost?: string | null;
   likesCount: number;
   repliesCount: number;
   isEdited: boolean;
@@ -49,6 +50,8 @@ export interface FeedItem {
   _id: string;
   text: string;
   author: SerializedAuthor;
+  parentPost?: string | null;
+  rootPost?: string | null;
   likesCount: number;
   repliesCount: number;
   isLiked?: boolean;
@@ -72,6 +75,7 @@ export interface FeedResponse {
 export interface PostNode {
   _id: string;
   parentPost: string | null;
+  rootPost: string | null;
   text: string;
   likesCount: number;
   repliesCount: number;

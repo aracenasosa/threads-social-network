@@ -39,14 +39,13 @@ const route = Router();
  *             type: object
  *             required:
  *               - author
- *               - text
  *             properties:
  *               author:
  *                 type: string
  *                 description: Author ID
  *               text:
  *                 type: string
- *                 description: Post content
+ *                 description: Post content (optional if media is provided)
  *               media:
  *                 type: array
  *                 items:

@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { POST_CONSTRAINTS } from "../constants/post.constants";
 
 const postScheme = new Schema(
   {
@@ -14,12 +15,20 @@ const postScheme = new Schema(
       default: null,
     },
 
+    rootPost: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+      default: null,
+    },
+
     text: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
-      minLength: [3, "Text must be at least 3 characters long"],
-      maxLength: [1000, "Text must be at most 1000 characters long"],
+      maxLength: [
+        POST_CONSTRAINTS.MAX_TEXT_LENGTH,
+        `Text must be at most ${POST_CONSTRAINTS.MAX_TEXT_LENGTH} characters long`,
+      ],
     },
 
     likesCount: {

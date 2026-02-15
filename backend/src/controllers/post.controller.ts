@@ -16,21 +16,50 @@ import {
   UsersByIdMap,
   FeedItem,
 } from "../types/post.types";
+import { POST_CONSTRAINTS } from "../constants/post.constants";
 
 export const createPost = async (req: Request, res: Response) => {
   const { author, text, parentPost } = req.body;
 
   const files = (req.files as Express.Multer.File[]) || [];
+  const textContent = text?.trim();
+
+  // Validate: Must have either text or media
+  if (!textContent && files.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Post must have either text or media" });
+  }
+
+  // If text is provided, it must meet length requirements
+  if (
+    textContent &&
+    (textContent.length < POST_CONSTRAINTS.MIN_TEXT_LENGTH ||
+      textContent.length > POST_CONSTRAINTS.MAX_TEXT_LENGTH)
+  ) {
+    return res.status(400).json({
+      message: `Text must be between ${POST_CONSTRAINTS.MIN_TEXT_LENGTH} and ${POST_CONSTRAINTS.MAX_TEXT_LENGTH} characters`,
+    });
+  }
 
   // Keep track of uploaded assets for rollback
   const uploaded: UploadedAsset[] = [];
 
   try {
     // 1. Create post
+    let rootPostId: any = undefined;
+    if (parentPost) {
+      const parent = await Post.findById(parentPost).select("rootPost");
+      if (parent) {
+        rootPostId = parent.rootPost || parent._id;
+      }
+    }
+
     const post = await Post.create({
       author,
-      text,
+      text: textContent || undefined,
       parentPost,
+      rootPost: rootPostId,
     });
 
     // 2.If this is a reply → increment parent repliesCount
@@ -97,6 +126,8 @@ export const createPost = async (req: Request, res: Response) => {
     const responsePost = {
       _id: populatedPost._id,
       text: populatedPost.text,
+      parentPost: populatedPost.parentPost,
+      rootPost: populatedPost.rootPost,
       author: serializeAuthor(
         populatedPost.author,
         String(populatedPost.populated("author") || populatedPost.author),
@@ -111,7 +142,7 @@ export const createPost = async (req: Request, res: Response) => {
     };
 
     return res.status(201).json({ post: responsePost });
-  } catch (err) {
+  } catch (err: any) {
     // Rollback uploaded assets if something fails mid-way
     await Promise.all(
       uploaded.map((u) =>
@@ -120,6 +151,9 @@ export const createPost = async (req: Request, res: Response) => {
     );
 
     console.error(err);
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ message: err.message });
+    }
     return res.status(500).json({ message: "Failed to create post" });
   }
 };
@@ -154,7 +188,7 @@ export const getFeed = async (req: Request, res: Response) => {
       .sort({ createdAt: order })
       .limit(limit)
       .select(
-        "_id author text likesCount repliesCount isEdited createdAt updatedAt",
+        "_id author text parentPost rootPost likesCount repliesCount isEdited createdAt updatedAt",
       )
       .populate(
         "author",
@@ -195,6 +229,8 @@ export const getFeed = async (req: Request, res: Response) => {
     const items: FeedItem[] = posts.map((p: any) => ({
       _id: p._id,
       text: p.text,
+      parentPost: p.parentPost,
+      rootPost: p.rootPost,
       author: serializeAuthor(
         p.author,
         String(p.populated("author") || p.author),
@@ -296,6 +332,7 @@ export const getPostThread = async (req: Request, res: Response) => {
           _id: 1,
           author: 1,
           parentPost: 1,
+          rootPost: 1,
           text: 1,
           likesCount: 1,
           repliesCount: 1,
@@ -435,6 +472,8 @@ export const getLikedPosts = async (req: Request, res: Response) => {
     const items: FeedItem[] = orderedPosts.map((p: any) => ({
       _id: p._id,
       text: p.text,
+      parentPost: p.parentPost,
+      rootPost: p.rootPost,
       isEdited: p.isEdited,
       author: serializeAuthor(
         p.author,
@@ -472,16 +511,14 @@ export const updatePost = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!text || text.trim().length < 3) {
-      return res
-        .status(400)
-        .json({ message: "Text must be at least 3 characters" });
-    }
-
-    if (text.length > 1000) {
-      return res
-        .status(400)
-        .json({ message: "Text cannot exceed 1000 characters" });
+    if (
+      text &&
+      (text.length < POST_CONSTRAINTS.MIN_TEXT_LENGTH ||
+        text.length > POST_CONSTRAINTS.MAX_TEXT_LENGTH)
+    ) {
+      return res.status(400).json({
+        message: `Text must be between ${POST_CONSTRAINTS.MIN_TEXT_LENGTH} and ${POST_CONSTRAINTS.MAX_TEXT_LENGTH} characters`,
+      });
     }
 
     // Find the post

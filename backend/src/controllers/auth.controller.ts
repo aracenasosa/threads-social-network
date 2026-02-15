@@ -9,6 +9,7 @@ import {
 } from "../utils/tokens";
 import jwt from "jsonwebtoken";
 import { googleClient } from "../utils/googleClient";
+import { formatUserResponse } from "../utils/user";
 
 export const getRefreshCookieOptions = () => {
   // Use secure cookies only in production (when served over HTTPS)
@@ -59,12 +60,7 @@ export const loginUser = async (req: Request, res: Response) => {
     return res.status(200).json({
       message: "User logged in successfully",
       accessToken,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        userName: user.userName,
-        email: user.email,
-      },
+      user: formatUserResponse(user),
     });
   } catch (error: any) {
     console.log(error);

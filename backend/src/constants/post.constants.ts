@@ -1,0 +1,4 @@
+export const POST_CONSTRAINTS = {
+  MAX_TEXT_LENGTH: 500,
+  MIN_TEXT_LENGTH: 1,
+};

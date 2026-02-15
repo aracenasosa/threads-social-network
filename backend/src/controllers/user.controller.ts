@@ -5,10 +5,7 @@ import {
   deleteCloudinaryAsset,
   uploadBufferToCloudinary,
 } from "../utils/cloudinaryUpload";
-import {
-  formatUserResponse,
-  formatUsersResponse,
-} from "../utils/user.formatter";
+import { formatUserResponse, formatUsersResponse } from "../utils/user";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {

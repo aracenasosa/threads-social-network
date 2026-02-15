@@ -41,11 +41,16 @@ export async function deleteCloudinaryAsset(
   await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 }
 
-type ImageVariant = "thumb" | "feed" | "full";
+type ImageVariant = "thumb" | "feed" | "full" | "avatar";
 
 const IMAGE_PRESETS: Record<ImageVariant, any[]> = {
+  avatar: [
+    { width: 900, height: 900, crop: "fill", gravity: "north" },
+    { quality: "auto" },
+    { fetch_format: "auto" },
+  ],
   thumb: [
-    { width: 200, crop: "fill" },
+    { width: 200, crop: "fill", gravity: "north" },
     { quality: "auto" },
     { fetch_format: "auto" },
   ],

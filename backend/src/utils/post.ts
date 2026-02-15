@@ -67,6 +67,7 @@ export function buildTree(
     return {
       _id: nodeId,
       parentPost: node.parentPost ? idStr(node.parentPost) : null,
+      rootPost: node.rootPost ? idStr(node.rootPost) : null,
       text: node.text,
       likesCount: node.likesCount ?? 0,
       repliesCount: node.repliesCount ?? 0,
