@@ -18,6 +18,7 @@ import { UserProfile } from '@/shared/types/auth.types';
 import { Camera, Lock } from 'lucide-react';
 import apiClient from '@/shared/lib/axios';
 import { toast } from 'sonner';
+import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
 
 interface EditProfileModalProps {
   open: boolean;
@@ -27,7 +28,7 @@ interface EditProfileModalProps {
 }
 
 export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: EditProfileModalProps) {
-  const { checkAuth } = useAuthStore();
+  const { checkAuth, setUser } = useAuthStore();
   const [fullName, setFullName] = useState(userProfile.fullName);
   const [userName, setUserName] = useState(userProfile.userName);
   const [bio, setBio] = useState(userProfile.bio || '');
@@ -35,6 +36,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(userProfile.avatarUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -70,6 +72,8 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
         formData.append('profilePhoto', selectedFile);
       }
 
+      const toastId = toast.loading('Updating...');
+
       const { data } = await apiClient.patch<{ user: UserProfile }>(
         `/users/update/${userProfile.id}`,
         formData,
@@ -80,21 +84,41 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
         }
       );
 
-      toast.success('Profile updated successfully');
-      await checkAuth(); // Refresh global auth state
+      toast.success('Profile updated successfully', { id: toastId });
+      setUser(data.user); // Update global auth state immediately
+      await checkAuth(); // Ensure full sync
       if (onUpdate) onUpdate(data.user);
       onOpenChange(false);
-    } catch (error: any) {
-      console.error('Update failed:', error);
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update profile');
+      console.error('Update profile error:', err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const hasChanges = fullName !== userProfile.fullName ||
+                     userName !== userProfile.userName ||
+                     bio !== (userProfile.bio || '') ||
+                     location !== (userProfile.location || '') ||
+                     selectedFile !== null;
+
+  const handleCloseAttempt = (e?: Event) => {
+    if (e) e.preventDefault();
+    if (hasChanges && !isSubmitting) {
+      setShowDiscardDialog(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-card border-border text-foreground rounded-3xl overflow-hidden p-0">
+      <DialogContent 
+        className="sm:max-w-[425px] bg-card border-border text-foreground rounded-3xl overflow-hidden p-0"
+        onInteractOutside={handleCloseAttempt}
+        onEscapeKeyDown={handleCloseAttempt}
+      >
         <DialogHeader className="p-6 pb-2">
             <DialogTitle className="sr-only">Edit Profile</DialogTitle>
             <div className="flex justify-between items-start">
@@ -191,6 +215,14 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
             </Button>
         </div>
       </DialogContent>
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={() => onOpenChange(false)}
+        title="Discard changes?"
+        description="You have unsaved changes in your profile. Are you sure you want to discard them?"
+      />
     </Dialog>
   );
 }

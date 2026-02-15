@@ -19,6 +19,8 @@ import { ImagePlus, Video, X, Smile } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
+import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
 
 interface ThreadEntry {
   id: string;
@@ -48,6 +50,7 @@ export function CreateThreadModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeEmojiEntryId, setActiveEmojiEntryId] = useState<string | null>(null);
+  const [focusedEntryId, setFocusedEntryId] = useState<string | null>('1');
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
 
   // Reset form when modal closes
@@ -56,6 +59,7 @@ export function CreateThreadModal({
       setEntries([{ id: '1', text: '', files: [] }]);
       setError(null);
       setActiveEmojiEntryId(null);
+      setFocusedEntryId('1');
     }
   }, [open]);
 
@@ -70,7 +74,6 @@ export function CreateThreadModal({
     ];
 
     for (const file of newFiles) {
-      // Cast to any to avoid strict union type check for now
       if (!allowedTypes.includes(file.type as any)) {
         return `File "${file.name}" has an unsupported type.`;
       }
@@ -115,10 +118,23 @@ export function CreateThreadModal({
     const entry = entries.find(e => e.id === id);
     if (!entry) return;
 
-    const newFiles = [...entry.files, ...selectedFiles].slice(0, POST_CONSTRAINTS.MAX_FILES);
-    const validationError = validateFiles(newFiles);
-    if (validationError) {
-      setError(validationError);
+    const newFiles = [...entry.files, ...selectedFiles];
+    
+    // Check constraints and show toasts for rejections
+    if (newFiles.length > POST_CONSTRAINTS.MAX_FILES) {
+      toast.error(`Maximum ${POST_CONSTRAINTS.MAX_FILES} files allowed per post.`);
+      return;
+    }
+
+    const totalSize = newFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > POST_CONSTRAINTS.MAX_TOTAL_SIZE_BYTES) {
+      toast.error(`Total file size cannot exceed ${POST_CONSTRAINTS.MAX_TOTAL_SIZE_MB}MB.`);
+      return;
+    }
+
+    const typeError = validateFiles(newFiles);
+    if (typeError) {
+      toast.error(typeError);
       return;
     }
 
@@ -154,7 +170,13 @@ export function CreateThreadModal({
     }, 50);
   }, [entries]);
 
-  const canSubmit = entries.some(entry => entry.text.trim() || entry.files.length > 0);
+  const canSubmit = entries.some(entry => (entry.text.trim().length >= POST_CONSTRAINTS.MIN_TEXT_LENGTH) || entry.files.length > 0) && 
+                    entries.every(entry => {
+                      const totalSize = entry.files.reduce((sum, f) => sum + f.size, 0);
+                      return entry.text.length <= POST_CONSTRAINTS.MAX_TEXT_LENGTH && 
+                             entry.files.length <= POST_CONSTRAINTS.MAX_FILES &&
+                             totalSize <= POST_CONSTRAINTS.MAX_TOTAL_SIZE_BYTES;
+                    });
   const isLastEntryEmpty = !entries[entries.length - 1].text.trim() && entries[entries.length - 1].files.length === 0;
 
   const createPostMutation = useCreatePostMutation();
@@ -213,6 +235,18 @@ export function CreateThreadModal({
     input.click();
   };
 
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
+  const hasChanges = entries.some(e => e.text.trim().length > 0 || e.files.length > 0) || entries.length > 1;
+
+  const handleCloseAttempt = (e?: Event) => {
+    if (e) e.preventDefault();
+    if (hasChanges && !isSubmitting) {
+      setShowDiscardDialog(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -220,6 +254,8 @@ export function CreateThreadModal({
       <DialogContent 
         className="sm:max-w-[600px] p-0 max-h-[90vh] flex flex-col gap-0 overflow-hidden bg-card"
         showCloseButton={false} // Removed the default X button
+        onInteractOutside={handleCloseAttempt}
+        onEscapeKeyDown={handleCloseAttempt}
       >
         <DialogTitle className="sr-only">New Thread</DialogTitle>
 
@@ -229,12 +265,12 @@ export function CreateThreadModal({
             variant="ghost"
             size="sm"
             className="text-foreground font-medium cursor-pointer"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleCloseAttempt()}
           >
             Cancel
           </Button>
           <h2 className="text-base font-semibold text-foreground">
-            {parentPostId ? 'Reply' : 'New Thread'}
+            {parentPostId ? 'Reply' : 'New thread'}
           </h2>
           <div className="w-16" /> {/* Spacer for centering */}
         </div>
@@ -264,6 +300,7 @@ export function CreateThreadModal({
               removeFile={removeFile}
               removeEntry={removeEntry}
               textareaRefs={textareaRefs}
+              onFocus={setFocusedEntryId}
             />
           ))}
 
@@ -296,16 +333,46 @@ export function CreateThreadModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-4 py-3 border-t border-border">
-          <PostButton
-            onClick={handleSubmit}
-            disabled={!canSubmit || isSubmitting}
-            className="px-6"
-          >
-            {isSubmitting ? 'Posting...' : 'Post'}
-          </PostButton>
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+          <div className="flex-1">
+            {focusedEntryId && (
+              <CharacterCounter 
+                current={entries.find(e => e.id === focusedEntryId)?.text.length || 0} 
+                max={POST_CONSTRAINTS.MAX_TEXT_LENGTH} 
+              />
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {!canSubmit && !isSubmitting && (
+               <div className="flex flex-col items-end mb-1 mr-1">
+                  {!entries.some(e => e.text.trim().length >= POST_CONSTRAINTS.MIN_TEXT_LENGTH || e.files.length > 0) && (
+                    <span className="text-[11px] font-medium text-destructive">Minimum 1 character or media required</span>
+                  )}
+                  {entries.some(e => e.text.length > POST_CONSTRAINTS.MAX_TEXT_LENGTH) && (
+                    <span className="text-[11px] font-medium text-destructive">Message exceeds {POST_CONSTRAINTS.MAX_TEXT_LENGTH} characters</span>
+                  )}
+               </div>
+            )}
+            <PostButton
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              className="px-6"
+            >
+              {isSubmitting 
+                ? (parentPostId ? 'Replying...' : 'Posting...') 
+                : (parentPostId ? 'Reply' : 'Post')}
+            </PostButton>
+          </div>
         </div>
       </DialogContent>
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={() => onOpenChange(false)}
+        title="Discard thread?"
+        description="You have unsaved changes in your thread. Are you sure you want to discard it?"
+      />
     </Dialog>
   );
 }
@@ -323,6 +390,7 @@ interface ThreadEntryItemProps {
   removeFile: (entryId: string, fileIndex: number) => void;
   removeEntry: (id: string) => void;
   textareaRefs: React.MutableRefObject<Map<string, HTMLTextAreaElement>>;
+  onFocus: (id: string) => void;
 }
 
 function ThreadEntryItem({
@@ -338,13 +406,24 @@ function ThreadEntryItem({
   removeFile,
   removeEntry,
   textareaRefs,
+  onFocus,
 }: ThreadEntryItemProps) {
   const { resolvedTheme } = useTheme();
-  const [emblaRef] = useEmblaCarousel({
+  const [emblaRef, emblaApi] = useEmblaCarousel({
     dragFree: true,
     align: 'start',
     containScroll: 'trimSnaps',
   });
+
+  // Auto-scroll to last media when new files are added
+  useEffect(() => {
+    if (emblaApi && entry.files.length > 2) {
+      // Use a small timeout to ensure the new item is rendered
+      setTimeout(() => {
+        emblaApi.scrollTo(entry.files.length - 1);
+      }, 50);
+    }
+  }, [emblaApi, entry.files.length]);
 
   return (
     <div className="relative">
@@ -384,6 +463,7 @@ function ThreadEntryItem({
             }}
             value={entry.text}
             onChange={(e) => handleTextChange(entry.id, e.target.value)}
+            onFocus={() => onFocus(entry.id)}
             placeholder="What's new?"
             className={cn(
               'w-full bg-transparent border-none outline-none resize-none',
@@ -480,6 +560,25 @@ function ThreadEntryItem({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function CharacterCounter({ current, max }: { current: number; max: number }) {
+  const remaining = max - current;
+  const isOverLimit = remaining < 0;
+
+  // Only show when close to limit (e.g. 80%) or already over
+  if (current < max * 0.8 && !isOverLimit) return null;
+
+  return (
+    <div className={cn(
+      "text-[13px] font-medium transition-colors",
+      isOverLimit 
+        ? "text-destructive" 
+        : "dark:text-gray-400 text-gray-900" // Black in light mode
+    )}>
+      {remaining}
     </div>
   );
 }

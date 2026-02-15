@@ -37,7 +37,7 @@ export default function SearchPage() {
       <Sidebar />
 
       <main
-        className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-4xl h-[calc(100vh-40px)] bg-card"
+        className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-4xl h-[calc(100vh-40px)] bg-card"
       >
         {/* Header */}
         <div className="px-4 py-4 flex items-center justify-between sticky top-0 bg-card border-b border-border z-10">

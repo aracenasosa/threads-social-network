@@ -30,7 +30,7 @@ export default function LikesPage() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
         <div className="px-6 py-4 border-b border-border bg-card">
           <h1 className="text-xl font-bold text-foreground">Likes</h1>
         </div>

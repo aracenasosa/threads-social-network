@@ -62,16 +62,18 @@ export default function ProfilePage() {
   const { 
     data: feedData, 
     isLoading: isFeedLoading,
+    isError: isFeedError,
+    error: feedError,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useFeed(10, profileUser?.id, getFilterType());
+  } = useFeed(10, profileUser?.id, getFilterType(), false, !!profileUser?.id);
 
   useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !isFeedError) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, isFeedError]);
 
   const feedItems = feedData?.pages.flatMap(page => page.items) || [];
 
@@ -79,7 +81,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-background flex">
         <Sidebar />
-        <main className="flex-1 max-w-2xl mx-auto border-x border-border p-4 pt-10">
+        <main className="flex-1 max-w-2xl mx-auto border border-border p-4 pt-10">
           <div className="flex justify-between items-start mb-6">
             <div className="space-y-3">
               <Skeleton className="h-8 w-48" />
@@ -115,7 +117,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
         {/* Profile Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex justify-between items-start">
@@ -186,7 +188,7 @@ export default function ProfilePage() {
                                 />
                                 <div className="flex-1">
                                     <div
-                                        className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer hover:bg-accent transition-colors select-none"
+                                        className="w-full text-muted-foreground text-left font-normal py-3 px-2 rounded-full cursor-pointer transition-colors select-none"
                                         onClick={() => setIsCreateModalOpen(true)}
                                     >
                                         What&apos;s new?
@@ -203,7 +205,22 @@ export default function ProfilePage() {
                     )}
                     
                     <div className="divide-y divide-border">
-                        {feedItems.length > 0 ? (
+                        {isFeedError ? (
+                            <div className="p-8 text-center">
+                                <p className="text-destructive font-semibold mb-2">Failed to load {activeTab}</p>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                    {feedError?.message || 'An unexpected error occurred'}
+                                </p>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => fetchNextPage()}
+                                    className="rounded-full"
+                                >
+                                    Try again
+                                </Button>
+                            </div>
+                        ) : feedItems.length > 0 ? (
                             feedItems.map((post: any) => (
                                 <div key={post._id} className="border-b border-border">
                                     <PostCard post={post} />

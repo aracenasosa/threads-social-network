@@ -1,21 +1,17 @@
-const TOKEN_KEY = "accessToken";
+let accessToken: string | null = null;
 
 export const getAccessToken = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return accessToken;
 };
 
 export const setAccessToken = (token: string): void => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(TOKEN_KEY, token);
+  accessToken = token;
 };
 
 export const removeAccessToken = (): void => {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(TOKEN_KEY);
+  accessToken = null;
 };
 
 export const hasAccessToken = (): boolean => {
-  return !!getAccessToken();
+  return !!accessToken;
 };
-

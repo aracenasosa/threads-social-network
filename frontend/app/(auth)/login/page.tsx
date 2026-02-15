@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -12,8 +12,13 @@ import { GoogleLoginButton } from '@/components/auth/google-login-button';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, error, isLoading } = useAuthStore();
+  const { login, error, isLoading, clearError } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    // Clear any previous auth errors when the login page mounts
+    clearError();
+  }, [clearError]);
 
   const {
     register,

@@ -27,10 +27,17 @@ export interface CreatePostFormData {
  * Validation constraints for post creation
  */
 export const POST_CONSTRAINTS = {
-  MAX_FILES: 4,
+  MAX_FILES: 20,
   MAX_TOTAL_SIZE_MB: 50,
   MAX_TOTAL_SIZE_BYTES: 50 * 1024 * 1024, // 50MB in bytes
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-  ALLOWED_VIDEO_TYPES: ['video/mp4', 'video/webm', 'video/quicktime'],
+  ALLOWED_IMAGE_TYPES: [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ],
+  ALLOWED_VIDEO_TYPES: ["video/mp4", "video/webm", "video/quicktime"],
+  MAX_TEXT_LENGTH: 500,
+  MIN_TEXT_LENGTH: 1,
 } as const;
-

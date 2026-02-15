@@ -52,7 +52,7 @@ export default function ThreadPage() {
     return (
       <div className="min-h-screen bg-background flex">
         <Sidebar />
-        <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border min-h-screen p-4 space-y-4">
+        <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border min-h-screen p-4 space-y-4">
            <Skeleton className="h-40 w-full rounded-xl" />
            <Skeleton className="h-20 w-full rounded-xl" />
            <Skeleton className="h-20 w-full rounded-xl" />
@@ -78,7 +78,7 @@ export default function ThreadPage() {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 rounded-4xl pb-20 md:pb-0 bg-card">
+      <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-4xl pb-20 md:pb-0 bg-card">
         {/* Header */}
         <div className="sticky top-0 z-50 border-b border-border px-4 h-14 flex items-center justify-between bg-card">
           <button 
@@ -94,6 +94,18 @@ export default function ThreadPage() {
         <div className="flex-1">
           {/* Main Post */}
           <div className="px-4 pt-4">
+             {post.rootPost && (
+               <div className="mb-4">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   className="w-full text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center gap-2"
+                   onClick={() => router.push(`/posts/${post.rootPost}/thread`)}
+                 >
+                   View original thread
+                 </Button>
+               </div>
+             )}
              <PostCard post={post} isThreadView={true} hideConnectorLine={true} />
           </div>
 

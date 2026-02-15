@@ -4,12 +4,11 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { Skeleton } from '@/components/ui/skeleton';
-import { hasAccessToken } from '@/shared/lib/token';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { status, checkAuth, user } = useAuthStore();
+  const { status, checkAuth } = useAuthStore();
 
   // Define public routes that don't require authentication
   const publicRoutes = ['/login', '/signup'];
@@ -18,15 +17,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only trigger checkAuth once if it hasn't started yet
     if (status === "idle") {
-      if (!isPublicRoute || hasAccessToken()) {
-        checkAuth();
-      } else {
-        // No token on a public route: we can safely assume guest status for now
-        useAuthStore.setState({ status: "guest" });
-      }
+      checkAuth();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isPublicRoute, status]); // checkAuth is stable from Zustand, so we can omit it
+  }, [status]); // Only depend on status for initialization
 
   useEffect(() => {
     // Wait until auth check is done

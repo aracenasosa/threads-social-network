@@ -67,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             fullName: data.user.fullName,
             userName: data.user.userName,
             email: data.user.email,
-            avatarUrl: undefined, // Will be fetched if needed
+            avatarUrl: data.user.avatarUrl,
           }
         : null;
 
@@ -151,7 +151,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               fullName: response.data.user.fullName,
               userName: response.data.user.userName,
               email: response.data.user.email,
-              avatarUrl: undefined, // Will be fetched if needed
+              avatarUrl: response.data.user.avatarUrl,
             }
           : null;
 

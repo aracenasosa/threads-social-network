@@ -48,10 +48,10 @@ export default function FeedPage() {
 
   // Load more when scrolling to the bottom
   useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage && !isError) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
   const handleLogout = async () => {
     await logout();
@@ -67,7 +67,7 @@ export default function FeedPage() {
 
       {/* Main Content Area */}
       <main
-        className="flex-1 flex flex-col max-w-2xl mx-auto border-x border-border overflow-hidden mt-10 
+        className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 
       rounded-4xl bg-card"
       >
         {/* Create Post Input */}

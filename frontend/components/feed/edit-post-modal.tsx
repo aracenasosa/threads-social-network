@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/auth.store';
 import { Post } from '@/shared/types/post.types';
+import { POST_CONSTRAINTS } from '@/shared/types/post-dto';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { cn } from '@/shared/lib/utils';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useTheme } from 'next-themes';
 import { PostMediaGrid } from './post-media-grid';
+import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
 
 interface EditPostModalProps {
   open: boolean;
@@ -32,16 +34,17 @@ export function EditPostModal({
 }: EditPostModalProps) {
   const { user } = useAuthStore();
   const { resolvedTheme } = useTheme();
-  const [text, setText] = useState(post.text);
+  const [text, setText] = useState(post.text || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset form when modal opens or post changes
   useEffect(() => {
     if (open) {
-      setText(post.text);
+      setText(post.text || '');
       setError(null);
       setShowEmojiPicker(false);
       
@@ -52,7 +55,7 @@ export function EditPostModal({
           textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
           textareaRef.current.focus();
           // Move cursor to end
-          const len = post.text.length;
+          const len = (post.text || '').length;
           textareaRef.current.setSelectionRange(len, len);
         }
       }, 50);
@@ -75,19 +78,19 @@ export function EditPostModal({
   };
 
   const handleSubmit = async () => {
-    const trimmedText = text.trim();
+    const trimmedText = (text || '').trim();
     
-    if (!trimmedText || trimmedText.length < 3) {
-      setError('Text must be at least 3 characters');
+    if (trimmedText.length < POST_CONSTRAINTS.MIN_TEXT_LENGTH) {
+      setError(`Text must be at least ${POST_CONSTRAINTS.MIN_TEXT_LENGTH} character`);
       return;
     }
 
-    if (trimmedText.length > 1000) {
-      setError('Text cannot exceed 1000 characters');
+    if (trimmedText.length > POST_CONSTRAINTS.MAX_TEXT_LENGTH) {
+      setError(`Text cannot exceed ${POST_CONSTRAINTS.MAX_TEXT_LENGTH} characters`);
       return;
     }
 
-    if (trimmedText === post.text) {
+    if (trimmedText === (post.text || '')) {
       onOpenChange(false);
       return;
     }
@@ -106,14 +109,30 @@ export function EditPostModal({
   };
 
   if (!user) return null;
+ 
+  const currentText = text || '';
+  const hasChanges = currentText !== (post.text || '');
 
-  const canSubmit = text.trim().length >= 3 && text !== post.text;
+  const handleCloseAttempt = (e?: Event) => {
+    if (e) e.preventDefault();
+    if (hasChanges && !isSubmitting) {
+      setShowDiscardDialog(true);
+    } else {
+      onOpenChange(false);
+    }
+  };
+
+  const canSubmit = currentText.length >= POST_CONSTRAINTS.MIN_TEXT_LENGTH &&
+                    currentText.length <= POST_CONSTRAINTS.MAX_TEXT_LENGTH && 
+                    hasChanges;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className="sm:max-w-[600px] p-0 max-h-[90vh] flex flex-col gap-0 overflow-hidden bg-card"
         showCloseButton={false}
+        onInteractOutside={handleCloseAttempt}
+        onEscapeKeyDown={handleCloseAttempt}
       >
         <DialogTitle className="sr-only">Edit post</DialogTitle>
 
@@ -123,13 +142,13 @@ export function EditPostModal({
             variant="ghost"
             size="sm"
             className="text-foreground font-medium cursor-pointer"
-            onClick={() => onOpenChange(false)}
+            onClick={() => handleCloseAttempt()}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
           <h2 className="text-base font-semibold text-foreground">
-            Edit post
+            Edit thread...
           </h2>
           <div className="w-16" /> {/* Spacer for centering */}
         </div>
@@ -229,16 +248,59 @@ export function EditPostModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-4 py-3 border-t border-border">
-          <PostButton
-            onClick={handleSubmit}
-            disabled={!canSubmit || isSubmitting}
-            className="px-6 cursor-pointer"
-          >
-            {isSubmitting ? 'Updating...' : 'Done'}
-          </PostButton>
+        <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+          <div className="flex-1">
+             <CharacterCounter current={(text || '').length} max={POST_CONSTRAINTS.MAX_TEXT_LENGTH} />
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {!canSubmit && !isSubmitting && (
+              <span className="text-[11px] font-medium text-destructive mb-1 mr-1">
+                {currentText.length === 0 
+                  ? "Minimum 1 character required" 
+                  : currentText.length > POST_CONSTRAINTS.MAX_TEXT_LENGTH 
+                    ? "Character limit exceeded" 
+                    : currentText === (post.text || '')
+                      ? "No changes detected"
+                      : ""}
+              </span>
+            )}
+            <PostButton
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              className="px-6"
+            >
+              {isSubmitting ? 'Updating...' : 'Done'}
+            </PostButton>
+          </div>
         </div>
       </DialogContent>
+
+      <DiscardChangesDialog
+        open={showDiscardDialog}
+        onOpenChange={setShowDiscardDialog}
+        onConfirm={() => onOpenChange(false)}
+        title="Discard edits?"
+        description="You have unsaved changes in your post. Are you sure you want to discard them?"
+      />
     </Dialog>
+  );
+}
+
+function CharacterCounter({ current, max }: { current: number; max: number }) {
+  const remaining = max - current;
+  const isOverLimit = remaining < 0;
+
+  // Only show when close to limit (e.g. 80%) or already over
+  if (current < max * 0.8 && !isOverLimit) return null;
+
+  return (
+    <div className={cn(
+      "text-[13px] font-medium transition-colors",
+      isOverLimit 
+        ? "text-destructive" 
+        : "dark:text-gray-400 text-gray-900" // Black in light mode
+    )}>
+      {remaining}
+    </div>
   );
 }

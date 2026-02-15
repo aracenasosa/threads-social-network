@@ -14,7 +14,6 @@ export function GoogleLoginButton() {
     onSuccess: async (codeResponse) => {
       const success = await loginWithGoogle(codeResponse.code);
       if (success) {
-        toast.success('Logged in with Google successfully');
         router.push('/feed');
       } else {
         toast.error('Failed to login with Google');

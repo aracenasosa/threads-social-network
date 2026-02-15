@@ -9,6 +9,7 @@ export const useFeed = (
   authorId?: string,
   filterType?: string,
   isLikedFeed: boolean = false,
+  enabled: boolean = true,
 ) => {
   const params = useMemo(
     () => ({ limit, authorId, filterType, isLikedFeed }),
@@ -17,6 +18,7 @@ export const useFeed = (
 
   return useInfiniteQuery<FeedResponse, Error>({
     queryKey: QUERY_KEYS.feed(params),
+    enabled,
     queryFn: ({ pageParam }) =>
       isLikedFeed
         ? postService.getLikedPosts(limit, pageParam as string | undefined)

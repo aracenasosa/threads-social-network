@@ -16,7 +16,7 @@ export interface PostMedia {
 
 export interface Post {
   _id: string;
-  text: string;
+  text?: string;
   author: PostAuthor;
   likesCount: number;
   repliesCount: number;
@@ -24,6 +24,7 @@ export interface Post {
   updatedAt: string;
   media: PostMedia[];
   parentPost?: string | null;
+  rootPost?: string | null;
   replies?: Post[];
   isLiked?: boolean;
   isEdited?: boolean;

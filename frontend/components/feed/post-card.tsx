@@ -213,9 +213,11 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             </div>
 
             {/* Text */}
-            <p className="text-foreground mt-1 whitespace-pre-wrap leading-normal text-[15px]">
-              {post.text}
-            </p>
+            {post.text && (
+              <p className="text-foreground mt-1 whitespace-pre-wrap leading-normal text-[15px]">
+                {post.text}
+              </p>
+            )}
 
             {/* Media Grid / carousel */}
             <PostMediaGrid
