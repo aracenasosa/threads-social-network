@@ -47,7 +47,7 @@ export default function SearchPage() {
         </div>
 
         {/* Search Input */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-2 mt-5">
           <div className="relative group">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-foreground transition-colors" />

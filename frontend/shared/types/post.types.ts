@@ -26,6 +26,7 @@ export interface Post {
   parentPost?: string | null;
   replies?: Post[];
   isLiked?: boolean;
+  isEdited?: boolean;
 }
 
 export interface FeedResponse {

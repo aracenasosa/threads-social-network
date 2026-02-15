@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { PostButton } from '@/components/shared/post-button';
 import { Avatar } from '@/components/shared/avatar';
 import { FilePreview } from '@/components/shared/file-preview';
 import { useQueryClient } from '@tanstack/react-query';
@@ -243,7 +244,7 @@ export function CreateThreadModal({
           {/* Reply indicator */}
           {parentPostAuthor && (
             <div className="px-4 pt-3 text-sm text-muted-foreground">
-              Replying to <span className="text-primary">@{parentPostAuthor}</span>
+              Replying to <span className="text-primary">{parentPostAuthor}</span>
             </div>
           )}
 
@@ -296,13 +297,13 @@ export function CreateThreadModal({
 
         {/* Footer */}
         <div className="flex items-center justify-end px-4 py-3 border-t border-border">
-          <Button
+          <PostButton
             onClick={handleSubmit}
             disabled={!canSubmit || isSubmitting}
-            className="rounded-full px-6 cursor-pointer"
+            className="px-6"
           >
             {isSubmitting ? 'Posting...' : 'Post'}
-          </Button>
+          </PostButton>
         </div>
       </DialogContent>
     </Dialog>

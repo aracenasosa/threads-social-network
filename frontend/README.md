@@ -98,15 +98,16 @@ We adhere to SOLID principles to keep the frontend maintainable:
 
 ### 🔄 Silent Refresh Mechanism (Axios Interceptors)
 
-We implemented a **Silent Refresh** strategy to ensure a seamless user experience:
+We implement a highly reliable **Silent Refresh** strategy to provide a seamless user experience:
 
-1.  **Automatic Token Attachment**: An Axios Request Interceptor attaches the `Access Token` to every outgoing request.
-2.  **Graceful 401 Handling**: An Axios Response Interceptor catches `401 Unauthorized` errors.
-3.  **Token Refresh**:
-    - It pauses the failed request and adds it to a `failedQueue`.
-    - It calls the `/api/auth/refresh` endpoint behind the scenes (sending the HttpOnly cookie).
-    - Upon success, it updates the Access Token in memory and retries all queued requests.
-    - The user never realizes their session was about to expire.
+1.  **Custom Axios Instance (`apiClient`)**: Configured with `withCredentials: true` to ensure the HttpOnly cookie is automatically handled by the browser for all requests.
+2.  **Request Interceptor**: Synchronously injects the short-lived `Access Token` from the `authStore` into the `Authorization: Bearer` header.
+3.  **Response Interceptor & Concurrency Handling**:
+    - **401 Sentinel**: Catches unauthorized errors and identifies if an Access Token has expired.
+    - **Failed Request Queue**: To prevent multiple refresh calls during concurrent requests (Race Conditions), all pending 401 requests are added to a `failedQueue`.
+    - **Single Refresh Trigger**: Only the first 401 triggers the `/api/auth/refresh` call.
+    - **Resolution**: Upon a successful refresh, all requests in the `failedQueue` are automatically retried with the new token.
+    - **Graceful Failure**: If the refresh fails (session expired), the user is logged out, and local state is cleared to prevent infinite loops.
 
 ### Other Patterns
 

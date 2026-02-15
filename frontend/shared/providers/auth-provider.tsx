@@ -16,25 +16,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isPublicRoute = publicRoutes.some((route) => pathname?.startsWith(route));
 
   useEffect(() => {
-    // Only check auth if NOT on a public route
-    if (!isPublicRoute) {
-      // Don't call checkAuth if we're already authenticated with a user
-      // This prevents infinite loops after login
-      if (status !== 'authenticated' || !user) {
-        checkAuth();
-      }
-    } else if (status === 'idle') {
-      // On public routes, if we already have a token, verify it so we can redirect
-      // authenticated users away from /login or /signup.
-      if (hasAccessToken()) {
+    // Only trigger checkAuth once if it hasn't started yet
+    if (status === "idle") {
+      if (!isPublicRoute || hasAccessToken()) {
         checkAuth();
       } else {
-        // No token: explicitly mark as guest so pages render normally
-        useAuthStore.setState({ status: 'guest' });
+        // No token on a public route: we can safely assume guest status for now
+        useAuthStore.setState({ status: "guest" });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, isPublicRoute, status, user]); // checkAuth is stable from Zustand, so we can omit it
+  }, [pathname, isPublicRoute, status]); // checkAuth is stable from Zustand, so we can omit it
 
   useEffect(() => {
     // Wait until auth check is done

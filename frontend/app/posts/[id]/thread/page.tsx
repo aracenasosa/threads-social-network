@@ -11,6 +11,7 @@ import { PostCard } from '@/components/feed/post-card';
 import { Avatar } from '@/components/shared/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { PostButton } from '@/components/shared/post-button';
 import { useState } from 'react';
 
 import { QUERY_KEYS } from '@/shared/lib/query-keys';
@@ -82,7 +83,7 @@ export default function ThreadPage() {
         <div className="sticky top-0 z-50 border-b border-border px-4 h-14 flex items-center justify-between bg-card">
           <button 
               onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
               <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
@@ -134,7 +135,7 @@ export default function ThreadPage() {
             <div className="flex-1 text-gray-500 text-sm">
                Reply to {post.author.userName}...
             </div>
-            <Button size="sm" variant="ghost" className="h-8">Post</Button>
+            <PostButton size="sm" className="h-8">Post</PostButton>
           </div>
 
           {/* Replies */}

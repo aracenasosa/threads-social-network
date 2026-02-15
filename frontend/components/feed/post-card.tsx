@@ -16,6 +16,17 @@ import {
 } from '@/components/ui/dialog';
 import { CreateThreadModal } from './create-thread-modal';
 import { PostMediaGrid } from './post-media-grid';
+import { EditPostModal } from './edit-post-modal';
+import { DeleteConfirmationDialog } from '@/components/shared/delete-confirmation-dialog';
+import { useEditPostMutation } from '@/shared/hooks/use-edit-post-mutation';
+import { useDeletePostMutation } from '@/shared/hooks/use-delete-post-mutation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Pencil, Trash2 } from 'lucide-react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth.store';
@@ -35,6 +46,8 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
   const [isMediaOpen, setIsMediaOpen] = useState(false);
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handlePostClick = (e: React.MouseEvent) => {
     // Navigate to thread if not already in thread view
@@ -60,10 +73,43 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
 
   const formatDate = (dateString: string) => {
     try {
-        return formatDistanceToNow(new Date(dateString), { addSuffix: true }).replace('about ', '');
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 60) return `${diffInSeconds}s`;
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) return `${diffInMinutes}m`;
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h`;
+        const diffInDays = Math.floor(diffInHours / 24);
+        if (diffInDays < 7) return `${diffInDays}d`;
+        const diffInWeeks = Math.floor(diffInDays / 7);
+        if (diffInWeeks < 4) return `${diffInWeeks}w`;
+        
+        // Fallback to simpler date for older posts
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch (e) {
         return '';
     }
+  };
+
+  // Check if post can be edited (within 30 minutes)
+  const canEdit = () => {
+    const thirtyMinutesInMs = 30 * 60 * 1000;
+    const timeSinceCreation = Date.now() - new Date(post.createdAt).getTime();
+    return timeSinceCreation <= thirtyMinutesInMs;
+  };
+
+  const editMutation = useEditPostMutation();
+  const deleteMutation = useDeletePostMutation();
+
+  const handleEdit = async (text: string) => {
+    await editMutation.mutateAsync({ postId: post._id, text });
+  };
+
+  const handleDelete = async () => {
+    await deleteMutation.mutateAsync(post._id);
   };
 
   return (
@@ -104,29 +150,21 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1 text-sm">
-                {!isThreadView && (
-                    <Link href={`/profile/${post.author.userName}`} className="font-bold text-foreground truncate hover:underline">
-                    {post.author.fullName}
-                    </Link>
-                )}
-                
                 <Link 
                   href={`/profile/${post.author.userName}`}
-                  className={cn(
-                    "hover:underline",
-                    isThreadView ? "font-bold text-foreground" : "text-muted-foreground"
-                  )}
+                  className="font-bold text-foreground hover:underline"
                 >
-                  {isThreadView ? post.author.userName : `@${post.author.userName}`}
+                  {post.author.userName}
                 </Link>
 
-                {!isThreadView && (
-                    <>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="text-muted-foreground hover:underline">
-                        {formatDate(post.createdAt)}
-                        </span>
-                    </>
+                <span className="text-muted-foreground ml-2">
+                  {formatDate(post.createdAt)}
+                </span>
+                {post.isEdited && (
+                  <>
+                    <span className="text-muted-foreground ml-1">·</span>
+                    <span className="text-muted-foreground/70 text-xs ml-1">Edited</span>
+                  </>
                 )}
 
                 {/* In Thread View, date is sometimes just shown next to username or omitted, 
@@ -137,16 +175,40 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
                     User said "use only the username, no the full name".
                     I will keep the date as it provides context.
                 */}
-                 {isThreadView && (
-                    <span className="text-muted-foreground ml-2">
-                        {formatDate(post.createdAt)}
-                    </span>
-                 )}
+
               </div>
               {!hideMenu && user?.id === post.author._id && (
-                <button className="text-muted-foreground hover:text-primary rounded-full p-1 hover:bg-accent transition-colors">
-                  <MoreHorizontal size={18} />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="text-muted-foreground hover:text-primary rounded-full p-1 hover:bg-accent transition-colors cursor-pointer">
+                      <MoreHorizontal size={18} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {canEdit() && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsEditModalOpen(true);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDeleteDialogOpen(true);
+                      }}
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
 
@@ -189,7 +251,7 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             {/* Custom Close Button */}
             <button
                onClick={() => setIsMediaOpen(false)}
-               className="absolute top-6 left-6 z-50 p-2 rounded-full bg-black/40 text-white transition-all hover:bg-black/60"
+               className="absolute top-6 left-6 z-50 p-2 rounded-full bg-black/40 text-white transition-all hover:bg-black/60 cursor-pointer"
             >
                 <X className="w-6 h-6" />
             </button>
@@ -211,6 +273,22 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
         onOpenChange={setIsReplyModalOpen}
         parentPostId={post._id}
         parentPostAuthor={post.author.userName}
+      />
+
+      {/* Edit modal */}
+      <EditPostModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        post={post}
+        onSubmit={handleEdit}
+      />
+
+      {/* Delete confirmation */}
+      <DeleteConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isLoading={deleteMutation.isPending}
       />
     </div>
   );

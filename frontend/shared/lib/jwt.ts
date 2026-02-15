@@ -1,12 +1,12 @@
 /**
  * Decode JWT token without verification (for client-side use)
  * We trust tokens from our own server, so we only need to decode, not verify
- * 
+ *
  * Note: jsonwebtoken is a Node.js library and may not work in browser.
  * We use a manual decode as fallback for browser compatibility.
  */
 
-import {decode} from "jsonwebtoken";
+import { decode } from "jsonwebtoken";
 export interface TokenPayload {
   userId: string;
   iat?: number;
@@ -24,7 +24,7 @@ export const decodeToken = (token: string): TokenPayload | null => {
       }
       return decoded as TokenPayload;
     }
-    
+
     // Browser-side: manual decode (jsonwebtoken doesn't work in browser)
     const parts = token.split(".");
     if (parts.length !== 3) {
@@ -32,7 +32,9 @@ export const decodeToken = (token: string): TokenPayload | null => {
     }
 
     const payload = parts[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    const decoded = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    );
     return decoded as TokenPayload;
   } catch (error) {
     console.error("Failed to decode token:", error);
@@ -46,8 +48,7 @@ export const isTokenExpired = (token: string): boolean => {
     return true;
   }
 
-  // Check if token is expired (with 1 minute buffer)
+  // Check if token is expired (with 10 seconds buffer)
   const now = Math.floor(Date.now() / 1000);
-  return payload.exp < now + 60;
+  return payload.exp < now + 10;
 };
-

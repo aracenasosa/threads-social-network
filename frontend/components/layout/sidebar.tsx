@@ -41,9 +41,6 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await logout();
-    // Redirect handled by page or protected route wrapper usually, 
-    // but here we might need to use router.push if not in a store effect
-    window.location.href = '/login'; 
   };
 
   const menuItems = [
@@ -114,7 +111,7 @@ export function Sidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground"
+                className="h-12 w-12 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer"
               >
                 <Menu className="size-10" />
               </Button>

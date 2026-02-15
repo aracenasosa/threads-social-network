@@ -12,6 +12,7 @@ import { PostCard } from '@/components/feed/post-card';
 import { Avatar } from '@/components/shared/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { PostButton } from '@/components/shared/post-button';
 import { useInView } from 'react-intersection-observer';
 import { 
   Dialog,   DialogContent,
@@ -191,13 +192,12 @@ export default function ProfilePage() {
                                         What&apos;s new?
                                     </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 px-6 font-semibold cursor-pointer"
+                                <PostButton
+                                    className="px-6 font-semibold"
                                     onClick={() => setIsCreateModalOpen(true)}
                                 >
                                     Post
-                                </Button>
+                                </PostButton>
                             </div>
                         </div>
                     )}

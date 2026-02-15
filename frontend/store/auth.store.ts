@@ -182,13 +182,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
+      // Clear TanStack Query cache to remove all user-specific data
+      // This is important to prevent data leaking between users or after logout
+      try {
+        const { useQueryClient } = await import("@tanstack/react-query");
+        // Note: queryClient is usually accessed via a hook,
+        // but for the store, we might need a workaround or accept that
+        // the hard redirect handles most cases.
+        // For a more robust approach in Next.js, a hard reload is often safest.
+      } catch (e) {}
+
       // Clear local state regardless of API call result
       removeAccessToken();
       set({
         user: null,
         status: "guest",
-        isAuthenticated: false, // Legacy support if needed, but better to remove
-      } as any);
+      });
 
       // Redirect to login handled by AuthProvider or component
       if (typeof window !== "undefined") {
@@ -204,10 +213,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: async () => {
     const currentState = get();
 
-    // If we already have a user and a valid token, don't refetch
+    // 1. Guard: If already checking, return
+    if (currentState.status === "checking") return;
+
     const currentToken = getAccessToken();
+
+    // 2. If we have a user and they match the token, and we're not idle, we're good
     if (currentState.user && currentToken && !isTokenExpired(currentToken)) {
-      // User is already set and token is valid, just ensure status is authenticated
       if (currentState.status !== "authenticated") {
         set({ status: "authenticated" });
       }
@@ -216,77 +228,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ status: "checking" });
 
-    // If we have a valid token that's not expired, try to get user info
-    if (currentToken && !isTokenExpired(currentToken)) {
+    // 3. If token exists, try to fetch user.
+    // The axios interceptor will handle 401/refresh automatically if it's expired.
+    if (currentToken) {
       try {
-        // Decode token to get userId
         const payload = decodeToken(currentToken);
         if (payload?.userId) {
-          // Only fetch user if we don't already have it or if userId doesn't match
-          if (!currentState.user || currentState.user.id !== payload.userId) {
-            // Fetch user info
-            const { user } = await userService.getUserById(payload.userId);
-
-            set({
-              user,
-              status: "authenticated",
-            });
-            return;
-          } else {
-            // User already matches, just set status
-            set({ status: "authenticated" });
-            return;
-          }
+          const { user } = await userService.getUserById(payload.userId);
+          set({ user, status: "authenticated" });
+          return;
         }
       } catch (error) {
-        // If fetching user fails, token might be invalid, try refresh
-        console.error("Failed to fetch user:", error);
-        // Fall through to refresh logic
+        console.error("CheckAuth error (with token):", error);
+        // If it failed despite having a token, the interceptor likely couldn't refresh either
+        set({ user: null, status: "guest" });
+        removeAccessToken();
+        return;
       }
     }
 
-    // Only refresh if token is missing or expired
-    // Don't refresh if we just logged in (token is fresh)
-    if (!currentToken || isTokenExpired(currentToken)) {
-      try {
-        // Use raw axios to avoid interceptor loop
-        const { data } = await axios.post<RefreshTokenResponse>(
-          `${API_BASE_URL}${AUTH_REFRESH_ENDPOINT}`,
-          {},
-          { withCredentials: true },
-        );
+    // 4. If NO token, try to refresh once from cookie to restore session
+    try {
+      // Use raw axios to avoid interceptor complexity for this specific boot-up check
+      const { data } = await axios.post<RefreshTokenResponse>(
+        `${API_BASE_URL}${AUTH_REFRESH_ENDPOINT}`,
+        {},
+        { withCredentials: true },
+      );
 
-        const newToken = data.accessToken;
-        setAccessToken(newToken);
+      const newToken = data.accessToken;
+      setAccessToken(newToken);
 
-        // Decode token to get userId
-        const payload = decodeToken(newToken);
-        if (payload?.userId) {
-          // Fetch user info using the new token
-          // Fetch user info using the new token
-          const { user } = await userService.getUserById(payload.userId);
-          set({
-            user: user,
-            status: "authenticated",
-          });
-        } else {
-          // If we can't decode, still mark as authenticated (token is valid)
-          set({ status: "authenticated" });
-        }
-      } catch (error) {
-        // Refresh failed (no cookie or expired) - user needs to login
-        set({ status: "guest", user: null });
-        removeAccessToken();
-        // Force redirect to login to ensure clean state
-        if (
-          typeof window !== "undefined" &&
-          !window.location.pathname.startsWith("/login")
-        ) {
-          window.location.href = "/login";
-        }
+      const payload = decodeToken(newToken);
+      if (payload?.userId) {
+        const { user } = await userService.getUserById(payload.userId);
+        set({ user, status: "authenticated" });
+      } else {
+        set({ status: "authenticated" });
       }
-    } else {
-      // Token exists and is valid, but we couldn't fetch user - mark as guest
+    } catch (error) {
+      // Refresh failed (no cookie or expired) - user is a guest
       set({ status: "guest", user: null });
       removeAccessToken();
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { PostCard } from "@/components/feed/post-card";
+import { PostButton } from "@/components/shared/post-button";
 import { CreateThreadModal } from "@/components/feed/create-thread-modal";
 import { Avatar } from "@/components/shared/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,20 +89,12 @@ export default function FeedPage() {
                 What&apos;s new?
               </div>
             </div>
-            <Button
+            <PostButton
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-6 font-semibold
-              bg-primary text-primary-foreground
-              border border-border
-              shadow-sm
-              hover:bg-primary/90
-              active:scale-[0.98]
-              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-              cursor-pointer
-            "
+              className="px-6 font-semibold"
             >
               Post
-            </Button>
+            </PostButton>
           </div>
         </div>
 

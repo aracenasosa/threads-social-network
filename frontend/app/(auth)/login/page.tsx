@@ -60,7 +60,7 @@ export default function LoginPage() {
               WELCOME BACK!
             </h1>
             <p className="text-muted-foreground text-sm">
-              Today is a new day. It's your day. You shape it. Sign in to start managing your projects.
+              Connect with people, share what&apos;s on your mind, and explore conversations happening around the world.
             </p>
           </div>
 

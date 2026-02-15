@@ -37,6 +37,7 @@ export function PostMediaGrid({
     containScroll: isFullScreen ? false : 'trimSnaps',
     startIndex: activeIndex,
     loop: isFullScreen,
+    watchDrag: !isSingleItem,
   });
 
   // Track active slide index
@@ -103,11 +104,21 @@ export function PostMediaGrid({
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  const startPos = useRef({ x: 0, y: 0 });
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    startPos.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
   // Handle click - check if it was a drag or a click
-  const handleClick = useCallback((index: number) => {
+  const handleClick = useCallback((index: number, e: React.MouseEvent) => {
     if (!emblaApi) return;
-    const engine = emblaApi.internalEngine();
-    if (engine.dragHandler.pointerDown()) return;
+    
+    // Check if it was a drag (moved more than 5px)
+    const diffX = Math.abs(e.clientX - startPos.current.x);
+    const diffY = Math.abs(e.clientY - startPos.current.y);
+    if (diffX > 5 || diffY > 5) return;
+
     onMediaClick?.(index);
   }, [emblaApi, onMediaClick]);
 
@@ -116,8 +127,11 @@ export function PostMediaGrid({
       className={cn(
         'mt-3 rounded-xl overflow-hidden relative',
         isFullScreen && 'mt-0 rounded-none w-screen h-screen flex flex-col items-center justify-center bg-black',
+        !isFullScreen && !isSingleItem && 'cursor-grab active:cursor-grabbing',
         className,
       )}
+      onPointerDown={handlePointerDown}
+      onClick={(e) => e.stopPropagation()}
       {...rest}
     >
       {/* Embla Carousel Container */}
@@ -131,7 +145,7 @@ export function PostMediaGrid({
               isActive={isFullScreen ? index === activeIndex : index === 0}
               isSingleItem={isSingleItem}
               isFullScreen={isFullScreen}
-              onClick={() => handleClick(index)}
+              onClick={(e) => handleClick(index, e)}
             />
           ))}
         </div>
@@ -181,7 +195,7 @@ interface MediaItemProps {
   isActive: boolean;
   isSingleItem: boolean;
   isFullScreen: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 function MediaItem({ item, index, isActive, isSingleItem, isFullScreen, onClick }: MediaItemProps) {
