@@ -116,6 +116,33 @@ We implement a highly reliable **Silent Refresh** strategy to provide a seamless
 - **Global State**: `Zustand` handles lightweight global state like the User Session.
 - **Tailwind v4**: Latest engine for high-performance styling.
 
+## 🧪 Testing
+
+We use **Jest** and **React Testing Library** to ensure component reliability and hook logic.
+
+- **Component Tests**: Verify rendering, user interactions, and accessibility.
+- **Hook Tests**: validate custom hooks and state logic.
+
+### Running Tests
+
+Run all tests:
+
+```bash
+pnpm test
+```
+
+Run tests in watch mode:
+
+```bash
+pnpm test:watch
+```
+
+Generate coverage report:
+
+```bash
+pnpm test:coverage
+```
+
 ## 📦 Scripts
 
 - `pnpm dev`: Runs the application in development mode.
