@@ -73,12 +73,18 @@ export const loginUser = async (req: Request, res: Response) => {
 export const logoutUser = async (req: Request, res: Response) => {
   try {
     const token = req.cookies?.refreshToken as string | undefined;
-
     if (token) {
-      const user = await User.findOne({ refreshToken: token });
-      if (user) {
-        user.refreshToken = null;
-        await user.save();
+      try {
+        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET) as TokenPayload;
+        const user = await User.findById(decoded.userId);
+        if (user) {
+          user.refreshToken = null;
+          await user.save();
+        }
+      } catch (error) {
+        // Token validation failed (expired or invalid)
+        // We still want to clear the cookie, so we just log and proceed
+        console.log("Logout token validation failed:", error);
       }
     }
 

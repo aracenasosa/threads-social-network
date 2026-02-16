@@ -136,6 +136,33 @@ The thread endpoint supports a `sort` query parameter to control the order of re
 - `?sort=top` (Default): Sorts by engagement (Likes + Replies count) descending.
 - `?sort=recent`: Sorts by creation date descending.
 
+## 🧪 Testing
+
+We use **Jest** and **Supertest** for a comprehensive testing strategy.
+
+- **Unit Tests**: Cover utility functions and data models.
+- **Integration Tests**: Verify API endpoints and database interactions using `mongodb-memory-server` for isolation.
+
+### Running Tests
+
+Run all tests:
+
+```bash
+pnpm test
+```
+
+Run tests in watch mode (for development):
+
+```bash
+pnpm test:watch
+```
+
+Generate coverage report:
+
+```bash
+pnpm test:coverage
+```
+
 ## 🛡️ Key Practices & Patterns
 
 ### 🏗️ SOLID Principles
