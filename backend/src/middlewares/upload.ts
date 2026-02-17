@@ -50,21 +50,3 @@ export function validateTotalUploadSizeMb(maxMb: number) {
     next();
   };
 }
-
-// Legacy function - keeping for backwards compatibility
-export function enforceTotalUploadSize(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const files = (req.files as Express.Multer.File[]) || [];
-  const total = files.reduce((sum, f) => sum + (f.size ?? 0), 0);
-
-  if (total > 50 * 1024 * 1024) {
-    return res.status(413).json({
-      message: `Total upload size exceeds 50MB. Received ${(total / (1024 * 1024)).toFixed(2)}MB.`,
-    });
-  }
-
-  next();
-}

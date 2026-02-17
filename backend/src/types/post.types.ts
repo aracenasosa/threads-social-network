@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document } from "mongoose"; // TS refresh comment
 
 /**
  * Post document interface extending Mongoose Document
@@ -57,6 +57,9 @@ export interface FeedItem {
   likesCount: number;
   repliesCount: number;
   isLiked?: boolean;
+  isLikedByAuthor?: boolean;
+  authorAvatarUrl?: string | null;
+  threadAuthorId?: string;
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -84,6 +87,9 @@ export interface PostNode {
   likesCount: number;
   repliesCount: number;
   isLiked?: boolean;
+  isLikedByAuthor?: boolean;
+  authorAvatarUrl?: string | null;
+  threadAuthorId?: string;
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -97,12 +103,15 @@ export interface PostNode {
 /**
  * Parameters for building post thread tree
  */
-export interface BuildTreeParams {
+export interface BuildTreeParamsRoot {
   root: any;
   descendants: any[];
   usersById: UsersByIdMap;
   mediaByPostId: MediaByPostMap;
   likedPostIds?: Set<string>;
+  authorLikedPostIds?: Set<string>;
+  authorAvatarUrl?: string | null;
+  threadAuthorId?: string;
   order: "asc" | "desc";
 }
 

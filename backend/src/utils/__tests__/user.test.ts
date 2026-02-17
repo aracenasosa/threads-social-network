@@ -3,7 +3,7 @@ import {
   formatUsersResponse,
   serializeAuthor,
 } from "../user";
-import { IUser } from "../../../types";
+import { IUser } from "../../types/user.types";
 
 describe("User Utilities", () => {
   const mockUser = {
@@ -12,7 +12,7 @@ describe("User Utilities", () => {
     userName: "johndoe",
     email: "john@example.com",
     profilePhoto: "https://example.com/avatar.jpg",
-    profilePhotoPublicId: null,
+    profilePhotoPublicId: undefined,
     location: "New York",
     bio: "Software developer",
     createdAt: new Date("2024-01-01"),
@@ -90,7 +90,7 @@ describe("User Utilities", () => {
         userName: "johndoe",
         fullName: "John Doe",
         profilePhoto: "https://example.com/avatar.jpg",
-        profilePhotoPublicId: null,
+        profilePhotoPublicId: undefined,
       };
 
       const serialized = serializeAuthor(author);
@@ -121,7 +121,7 @@ describe("User Utilities", () => {
         userName: "johndoe",
         fullName: "John Doe",
         profilePhoto: "",
-        profilePhotoPublicId: null,
+        profilePhotoPublicId: undefined,
       };
 
       const serialized = serializeAuthor(author);

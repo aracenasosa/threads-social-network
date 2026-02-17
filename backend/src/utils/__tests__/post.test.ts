@@ -1,5 +1,5 @@
+import { BuildTreeParamsRoot } from "../../types";
 import { idStr, buildTree } from "../post";
-import { BuildTreeParams, PostNode } from "../../../types/post.types";
 
 describe("Post Utilities", () => {
   describe("idStr", () => {
@@ -66,7 +66,7 @@ describe("Post Utilities", () => {
       userName: "john",
       fullName: "John Doe",
       profilePhoto: "https://example.com/john.jpg",
-      profilePhotoPublicId: null,
+      profilePhotoPublicId: undefined,
     };
 
     const user2 = {
@@ -74,7 +74,7 @@ describe("Post Utilities", () => {
       userName: "jane",
       fullName: "Jane Smith",
       profilePhoto: "https://example.com/jane.jpg",
-      profilePhotoPublicId: null,
+      profilePhotoPublicId: undefined,
     };
 
     it("should build tree with no replies", () => {
@@ -82,12 +82,13 @@ describe("Post Utilities", () => {
       const mediaByPostId = new Map();
       const likedPostIds = new Set<string>();
 
-      const params: BuildTreeParams = {
+      const params: BuildTreeParamsRoot = {
         root: rootPost,
         descendants: [],
         usersById,
         mediaByPostId,
         likedPostIds,
+        order: "asc",
       };
 
       const tree = buildTree(params);
@@ -106,13 +107,14 @@ describe("Post Utilities", () => {
       const mediaByPostId = new Map();
       const likedPostIds = new Set<string>();
 
-      const params: BuildTreeParams & { sortBy: "top" } = {
+      const params: BuildTreeParamsRoot & { sortBy: "top" } = {
         root: rootPost,
         descendants: [reply1, reply2],
         usersById,
         mediaByPostId,
         likedPostIds,
         sortBy: "top",
+        order: "asc",
       };
 
       const tree = buildTree(params);
@@ -131,13 +133,14 @@ describe("Post Utilities", () => {
       const mediaByPostId = new Map();
       const likedPostIds = new Set<string>();
 
-      const params: BuildTreeParams & { sortBy: "recent" } = {
+      const params: BuildTreeParamsRoot & { sortBy: "recent" } = {
         root: rootPost,
         descendants: [reply1, reply2],
         usersById,
         mediaByPostId,
         likedPostIds,
         sortBy: "recent",
+        order: "asc",
       };
 
       const tree = buildTree(params);
@@ -153,12 +156,13 @@ describe("Post Utilities", () => {
       const mediaByPostId = new Map();
       const likedPostIds = new Set(["post1"]);
 
-      const params: BuildTreeParams = {
+      const params: BuildTreeParamsRoot = {
         root: rootPost,
         descendants: [],
         usersById,
         mediaByPostId,
         likedPostIds,
+        order: "asc",
       };
 
       const tree = buildTree(params);
@@ -181,12 +185,13 @@ describe("Post Utilities", () => {
       ]);
       const likedPostIds = new Set<string>();
 
-      const params: BuildTreeParams = {
+      const params: BuildTreeParamsRoot = {
         root: rootPost,
         descendants: [],
         usersById,
         mediaByPostId,
         likedPostIds,
+        order: "asc",
       };
 
       const tree = buildTree(params);

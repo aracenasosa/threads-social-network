@@ -16,6 +16,7 @@ import {
   MediaByPostMap,
   UsersByIdMap,
   FeedItem,
+  BuildTreeParamsRoot,
 } from "../types/post.types";
 import { POST_CONSTRAINTS } from "../constants/post.constants";
 
@@ -392,16 +393,61 @@ export const getPostThread = async (req: Request, res: Response) => {
       likedPostIds = new Set(likes.map((l) => String(l.post)));
     }
 
+    // Fetch thread author's likes for "Author Like" badge
+    // We want the ABSOLUTE ORIGINAL POSTER (OP) of the whole thread.
+    // If rootDoc.rootPost exists, find the author of that.
+    let absoluteThreadAuthorId = String(rootDoc.author);
+    if (rootDoc.rootPost) {
+      const absoluteRoot = await Post.findById(rootDoc.rootPost).select(
+        "author",
+      );
+      if (absoluteRoot) {
+        absoluteThreadAuthorId = String(absoluteRoot.author);
+      }
+    }
+
+    let authorLikedPostIds = new Set<string>();
+    if (absoluteThreadAuthorId && allPostIds.length > 0) {
+      const authorLikes = await Like.find({
+        user: absoluteThreadAuthorId,
+        post: { $in: allPostIds },
+      }).select("post");
+      authorLikedPostIds = new Set(authorLikes.map((l) => String(l.post)));
+    }
+
+    // Ensure we have the avatar for the absolute author
+    let threadAuthor = usersById.get(absoluteThreadAuthorId);
+    if (!threadAuthor) {
+      // If not in cache, fetch it (unlikely if they are in the segment, but safe)
+      const authorDoc = await mongoose
+        .model("User")
+        .findById(absoluteThreadAuthorId);
+      if (authorDoc) {
+        threadAuthor = {
+          _id: String(authorDoc._id),
+          fullName: authorDoc.fullName,
+          userName: authorDoc.userName,
+          profilePhoto: authorDoc.profilePhoto,
+        };
+      }
+    }
+    const authorAvatarUrl = threadAuthor?.profilePhoto || null;
+
     // Root post needs serialized author/media too
-    const thread = buildTree({
+    const buildParams: BuildTreeParamsRoot & { sortBy?: "top" | "recent" } = {
       root: rootDoc,
       descendants: rootDoc.descendants ?? [],
       usersById,
       mediaByPostId,
       likedPostIds,
+      authorLikedPostIds,
+      authorAvatarUrl,
+      threadAuthorId: absoluteThreadAuthorId,
       order,
       sortBy,
-    });
+    };
+
+    const thread = buildTree(buildParams);
 
     logger.debug(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
     if (rootDoc.descendants?.length > 0) {

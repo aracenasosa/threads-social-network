@@ -1,13 +1,13 @@
 import { serializeMedia } from "./cloudinaryUpload";
 import { serializeAuthor } from "./user";
-import { PostNode, BuildTreeParams } from "../types/post.types";
+import { PostNode, BuildTreeParamsRoot } from "../types/post.types";
 
 export function idStr(x: any) {
   return x ? String(x) : "";
 }
 
 export function buildTree(
-  params: BuildTreeParams & { sortBy?: "top" | "recent" },
+  params: BuildTreeParamsRoot & { sortBy?: "top" | "recent" },
 ): PostNode {
   const {
     root,
@@ -15,6 +15,9 @@ export function buildTree(
     usersById,
     mediaByPostId,
     likedPostIds,
+    authorLikedPostIds,
+    authorAvatarUrl,
+    threadAuthorId,
     sortBy = "top", // Default to top if not provided
   } = params;
 
@@ -75,6 +78,9 @@ export function buildTree(
       likesCount: node.likesCount ?? 0,
       repliesCount: node.repliesCount ?? 0,
       isLiked: likedPostIds?.has(nodeId) ?? false,
+      isLikedByAuthor: authorLikedPostIds?.has(nodeId) ?? false,
+      authorAvatarUrl,
+      threadAuthorId,
       isEdited: node.isEdited ?? false,
       threadIndex: node.threadIndex ?? null,
       threadTotal: node.threadTotal ?? null,
