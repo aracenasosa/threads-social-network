@@ -148,7 +148,6 @@ router.get("/username/:username", authenticateMiddleware, getUserByUsername);
  */
 router.post(
   "/",
-  authenticateMiddleware,
   uploadSingle.single("profilePhoto"),
   validateFormData({
     fields: ["userName", "fullName", "email", "password"],

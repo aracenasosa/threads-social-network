@@ -12,6 +12,7 @@ A robust and scalable RESTful API built with **Node.js**, **Express**, and **Typ
 - **Media Storage**: [Cloudinary](https://cloudinary.com/)
 - **Documentation**: [Swagger UI](https://swagger.io/tools/swagger-ui/)
 - **Logging**: Morgan
+- **Testing**: [Jest](https://jestjs.io/) & [Supertest](https://github.com/ladjs/supertest)
 
 ## 📂 Project Architecture
 

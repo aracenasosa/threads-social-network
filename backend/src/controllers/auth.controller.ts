@@ -1,4 +1,5 @@
 import { User } from "../models/user.model";
+import logger from "../utils/logger";
 import { Request, Response } from "express";
 import {
   REFRESH_TOKEN_COOKIE_PATH,
@@ -13,7 +14,7 @@ import { formatUserResponse } from "../utils/user";
 
 export const getRefreshCookieOptions = () => {
   // Use secure cookies only in production (when served over HTTPS)
-  const isProd = process.env.NODE_ENV === "production"; // production must be HTTPS
+  const isProd = process.env.NODE_ENV === "prod"; // production must be HTTPS
 
   return {
     httpOnly: true as const,
@@ -63,7 +64,7 @@ export const loginUser = async (req: Request, res: Response) => {
       user: formatUserResponse(user),
     });
   } catch (error: any) {
-    console.log(error);
+    logger.error("[AuthController.loginUser] Login error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -84,7 +85,10 @@ export const logoutUser = async (req: Request, res: Response) => {
       } catch (error) {
         // Token validation failed (expired or invalid)
         // We still want to clear the cookie, so we just log and proceed
-        console.log("Logout token validation failed:", error);
+        logger.warn(
+          "[AuthController.logoutUser] Logout token validation failed:",
+          error,
+        );
       }
     }
 
@@ -92,7 +96,7 @@ export const logoutUser = async (req: Request, res: Response) => {
 
     return res.json({ message: "Logged out successfully" });
   } catch (error: any) {
-    console.log(error);
+    logger.error("[AuthController.logoutUser] Logout error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -182,52 +186,60 @@ export const googleLogin = async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error("Google login error:", error);
+    logger.error("[AuthController.googleLogin] Google login error:", error);
     return res.status(500).json({ message: "Google login failed" });
   }
 };
 
 export const refresh = async (req: Request, res: Response) => {
-  const refreshToken = (req.cookies?.refreshToken as string | undefined) || "";
-
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Missing refresh token" });
-  }
-
-  let payload;
-
   try {
-    payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as TokenPayload;
-  } catch (error) {
-    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
-    return res.status(401).json({ message: "Invalid refresh token" });
+    const refreshToken =
+      (req.cookies?.refreshToken as string | undefined) || "";
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Missing refresh token" });
+    }
+
+    let payload;
+
+    try {
+      payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET) as TokenPayload;
+    } catch (error) {
+      res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const userId = payload?.userId;
+
+    const user = await User.findById(userId);
+    if (!user || !user.refreshToken) {
+      res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
+      return res.status(401).json({
+        message:
+          "Refresh not allowed because user not found or refresh token not found",
+      });
+    }
+
+    // Stored refresh token is hashed with bcrypt; compare hash with raw cookie token
+    const isMatch = await user.compareRefreshToken(refreshToken);
+    if (!isMatch) {
+      res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
+      return res.status(401).json({ message: "Refresh token mismatch" });
+    }
+
+    const newAccessToken = signAccessToken({ userId: String(user._id) });
+    const newRefreshToken = signRefreshToken({ userId: String(user._id) });
+
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.cookie("refreshToken", newRefreshToken, getRefreshCookieOptions());
+
+    return res.json({ accessToken: newAccessToken });
+  } catch (error: any) {
+    logger.error("[AuthController.refresh] Refresh error:", error);
+    return res
+      .status(500)
+      .json({ message: `Internal server error: ${error.message}` });
   }
-
-  const userId = payload?.userId;
-
-  const user = await User.findById(userId);
-  if (!user || !user.refreshToken) {
-    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
-    return res.status(401).json({
-      message:
-        "Refresh not allowed because user not found or refresh token not found",
-    });
-  }
-
-  // Stored refresh token is hashed with bcrypt; compare hash with raw cookie token
-  const isMatch = await user.compareRefreshToken(refreshToken);
-  if (!isMatch) {
-    res.clearCookie("refreshToken", { path: REFRESH_TOKEN_COOKIE_PATH });
-    return res.status(401).json({ message: "Refresh token mismatch" });
-  }
-
-  const newAccessToken = signAccessToken({ userId: String(user._id) });
-  const newRefreshToken = signRefreshToken({ userId: String(user._id) });
-
-  user.refreshToken = newRefreshToken;
-  await user.save();
-
-  res.cookie("refreshToken", newRefreshToken, getRefreshCookieOptions());
-
-  return res.json({ accessToken: newAccessToken });
 };

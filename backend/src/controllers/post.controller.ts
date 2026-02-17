@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import logger from "../utils/logger";
 import { Post } from "../models/post.model";
 import { Like } from "../models/like.model";
 import { Media } from "../models/media.model";
@@ -19,7 +20,7 @@ import {
 import { POST_CONSTRAINTS } from "../constants/post.constants";
 
 export const createPost = async (req: Request, res: Response) => {
-  const { author, text, parentPost } = req.body;
+  const { author, text, parentPost, threadIndex, threadTotal } = req.body;
 
   const files = (req.files as Express.Multer.File[]) || [];
   const textContent = text?.trim();
@@ -60,6 +61,8 @@ export const createPost = async (req: Request, res: Response) => {
       text: textContent || undefined,
       parentPost,
       rootPost: rootPostId,
+      threadIndex,
+      threadTotal,
     });
 
     // 2.If this is a reply → increment parent repliesCount
@@ -128,6 +131,8 @@ export const createPost = async (req: Request, res: Response) => {
       text: populatedPost.text,
       parentPost: populatedPost.parentPost,
       rootPost: populatedPost.rootPost,
+      threadIndex: populatedPost.threadIndex,
+      threadTotal: populatedPost.threadTotal,
       author: serializeAuthor(
         populatedPost.author,
         String(populatedPost.populated("author") || populatedPost.author),
@@ -150,7 +155,7 @@ export const createPost = async (req: Request, res: Response) => {
       ),
     );
 
-    console.error(err);
+    logger.error("[PostController.createPost] Create post error:", err);
     if (err.name === "ValidationError") {
       return res.status(400).json({ message: err.message });
     }
@@ -188,7 +193,7 @@ export const getFeed = async (req: Request, res: Response) => {
       .sort({ createdAt: order })
       .limit(limit)
       .select(
-        "_id author text parentPost rootPost likesCount repliesCount isEdited createdAt updatedAt",
+        "_id author text parentPost rootPost likesCount repliesCount isEdited threadIndex threadTotal createdAt updatedAt",
       )
       .populate(
         "author",
@@ -231,6 +236,8 @@ export const getFeed = async (req: Request, res: Response) => {
       text: p.text,
       parentPost: p.parentPost,
       rootPost: p.rootPost,
+      threadIndex: p.threadIndex,
+      threadTotal: p.threadTotal,
       author: serializeAuthor(
         p.author,
         String(p.populated("author") || p.author),
@@ -248,7 +255,7 @@ export const getFeed = async (req: Request, res: Response) => {
 
     return res.json({ items, nextCursor });
   } catch (err: any) {
-    console.error(err);
+    logger.error("[PostController.getFeed] Get feed error:", err);
     return res
       .status(500)
       .json({ message: err.message || "Failed to load feed" });
@@ -337,6 +344,8 @@ export const getPostThread = async (req: Request, res: Response) => {
           likesCount: 1,
           repliesCount: 1,
           isEdited: 1,
+          threadIndex: 1,
+          threadTotal: 1,
           createdAt: 1,
           updatedAt: 1,
           descendants: 1,
@@ -394,7 +403,7 @@ export const getPostThread = async (req: Request, res: Response) => {
       sortBy,
     });
 
-    console.log(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
+    logger.debug(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
     if (rootDoc.descendants?.length > 0) {
       console.log(
         `[getPostThread] First Descendant Stats: Likes=${rootDoc.descendants[0].likesCount}, Replies=${rootDoc.descendants[0].repliesCount}`,
@@ -403,7 +412,7 @@ export const getPostThread = async (req: Request, res: Response) => {
 
     return res.json(thread);
   } catch (err: any) {
-    console.error(err);
+    logger.error("[PostController.getPostThread] Get thread error:", err);
     return res
       .status(500)
       .json({ message: err.message || "Failed to fetch thread" });
@@ -491,7 +500,7 @@ export const getLikedPosts = async (req: Request, res: Response) => {
 
     return res.json({ items, nextCursor });
   } catch (err: any) {
-    console.error(err);
+    logger.error("[PostController.getLikedPosts] Get liked posts error:", err);
     return res
       .status(500)
       .json({ message: err.message || "Failed to load liked posts" });
@@ -559,7 +568,7 @@ export const updatePost = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error("Update post error:", err);
+    logger.error("[PostController.updatePost] Update post error:", err);
     return res.status(500).json({ message: "Failed to update post" });
   }
 };
@@ -645,7 +654,7 @@ export const deletePost = async (req: Request, res: Response) => {
 
     return res.json({ message: "Post deleted successfully" });
   } catch (err: any) {
-    console.error("Delete post error:", err);
+    logger.error("[PostController.deletePost] Delete post error:", err);
     return res.status(500).json({ message: "Failed to delete post" });
   }
 };

@@ -13,6 +13,8 @@ export interface IPost extends Document {
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
+  threadIndex?: number | null;
+  threadTotal?: number | null;
 }
 
 /**
@@ -58,6 +60,8 @@ export interface FeedItem {
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
+  threadIndex?: number | null;
+  threadTotal?: number | null;
   media: MediaItem[];
 }
 
@@ -83,6 +87,8 @@ export interface PostNode {
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
+  threadIndex?: number | null;
+  threadTotal?: number | null;
   author: SerializedAuthor;
   media: MediaItem[];
   replies: PostNode[];
@@ -117,6 +123,8 @@ export interface CreatePostBody {
   author: string;
   text: string;
   parentPost?: string;
+  threadIndex?: number;
+  threadTotal?: number;
 }
 
 /**

@@ -45,6 +45,14 @@ const postScheme = new Schema(
       type: Boolean,
       default: false,
     },
+    threadIndex: {
+      type: Number,
+      default: null,
+    },
+    threadTotal: {
+      type: Number,
+      default: null,
+    },
   },
   { timestamps: true },
 );

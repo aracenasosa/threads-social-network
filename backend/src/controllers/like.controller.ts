@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import logger from "../utils/logger";
 import { Like } from "../models/like.model";
 import { Post } from "../models/post.model";
 import mongoose from "mongoose";
@@ -50,7 +51,7 @@ export const toggleLike = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     await session.abortTransaction();
-    console.error(error);
+    logger.error("[LikeController.toggleLike] Toggle like error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });

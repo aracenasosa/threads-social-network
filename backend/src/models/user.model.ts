@@ -68,7 +68,6 @@ const userSchema = new Schema(
       unique: true,
       sparse: true,
       select: false,
-      default: "",
     },
     refreshToken: {
       type: String,

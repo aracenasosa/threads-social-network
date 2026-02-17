@@ -28,6 +28,17 @@ export function buildTree(
 
   for (const [parentId, arr] of childrenByParent.entries()) {
     arr.sort((a, b) => {
+      // Prioritize thread posts (posts created as part of the initial thread)
+      // These have threadIndex >= 2 (since 1 is the root)
+      const threadA = a.threadIndex || 0;
+      const threadB = b.threadIndex || 0;
+
+      if (threadA > 1 && threadB > 1) {
+        return threadA - threadB; // Sort by index ascending
+      }
+      if (threadA > 1) return -1; // a comes first
+      if (threadB > 1) return 1; // b comes first
+
       // Common date comparison
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
@@ -38,23 +49,15 @@ export function buildTree(
         const repliesA = a.repliesCount ?? 0;
         const repliesB = b.repliesCount ?? 0;
 
-        // Calculate engagement score
-        // We can give equal weight or weighted. For now, simple sum of interactions.
         const scoreA = likesA + repliesA;
         const scoreB = likesB + repliesB;
 
         if (scoreA !== scoreB) {
           return scoreB - scoreA;
         }
-        // Fallback to recent
         return dateB - dateA;
       }
 
-      // Default: "recent" (latest first) or "oldest" (if order='asc' passed manually)
-      // The original code used `order` ('asc' or 'desc').
-      // We will respect `sortBy='recent'` as 'desc'.
-      // But if we want to keep `order` support, we can check it.
-      // For this feature, 'Recent' implies DESC.
       return dateB - dateA;
     });
   }
@@ -73,6 +76,8 @@ export function buildTree(
       repliesCount: node.repliesCount ?? 0,
       isLiked: likedPostIds?.has(nodeId) ?? false,
       isEdited: node.isEdited ?? false,
+      threadIndex: node.threadIndex ?? null,
+      threadTotal: node.threadTotal ?? null,
       createdAt: node.createdAt,
       updatedAt: node.updatedAt,
 

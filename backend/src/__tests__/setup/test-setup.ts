@@ -2,6 +2,7 @@
 process.env.CLOUDINARY_CLOUD_NAME = "test_cloud";
 process.env.CLOUDINARY_API_KEY = "test_key";
 process.env.CLOUDINARY_API_SECRET = "test_secret";
+process.env.ALLOWED_ORIGINS = "http://localhost:3000";
 
 import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";

@@ -1,18 +1,20 @@
 import { Request, Response } from "express";
-import { IUser } from "../types/user.types";
+import logger from "../utils/logger";
 import { User } from "../models/user.model";
 import {
   deleteCloudinaryAsset,
   uploadBufferToCloudinary,
 } from "../utils/cloudinaryUpload";
 import { formatUserResponse, formatUsersResponse } from "../utils/user";
+import { signAccessToken, signRefreshToken } from "../utils/tokens";
+import { getRefreshCookieOptions } from "./auth.controller";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find();
     return res.status(200).json(formatUsersResponse(users));
   } catch (error: any) {
-    console.log(error);
+    logger.error("[UserController.getUsers] Get users error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -31,7 +33,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
     return res.status(200).json({ user: formatUserResponse(user) });
   } catch (error: any) {
-    console.log(error);
+    logger.error("[UserController.getUserById] Get user by id error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -50,7 +52,10 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 
     return res.status(200).json({ user: formatUserResponse(user) });
   } catch (error: any) {
-    console.log(error);
+    logger.error(
+      "[UserController.getUserByUsername] Get user by username error:",
+      error,
+    );
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -74,7 +79,7 @@ export const searchUsers = async (req: Request, res: Response) => {
 
     return res.status(200).json({ users: formatUsersResponse(users) });
   } catch (error: any) {
-    console.log(error);
+    logger.error("[UserController.searchUsers] Search users error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -100,7 +105,7 @@ export const createUser = async (req: Request, res: Response) => {
       });
     }
 
-    // ✅ Optional avatar upload
+    // Optional avatar upload
     let profilePhoto = "";
 
     if (req.file) {
@@ -125,8 +130,18 @@ export const createUser = async (req: Request, res: Response) => {
       profilePhotoPublicId,
     });
 
+    // Generate tokens for auto-login
+    const accessToken = signAccessToken({ userId: String(newUser._id) });
+    const refreshToken = signRefreshToken({ userId: String(newUser._id) });
+
+    newUser.refreshToken = refreshToken;
+    await newUser.save();
+
+    res.cookie("refreshToken", refreshToken, getRefreshCookieOptions());
+
     return res.status(201).json({
       message: "User created successfully",
+      accessToken,
       user: formatUserResponse(newUser),
     });
   } catch (error: any) {
@@ -137,7 +152,7 @@ export const createUser = async (req: Request, res: Response) => {
       );
     }
 
-    console.log(error);
+    logger.error("[UserController.createUser] Create user error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -156,7 +171,7 @@ export const removeUser = async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error: any) {
-    console.log(error);
+    logger.error("[UserController.removeUser] Remove user error:", error);
     return res
       .status(500)
       .json({ message: `Internal server error: ${error.message}` });
@@ -222,7 +237,10 @@ export const updateUser = async (req: Request, res: Response) => {
       // ✅ Destroy the previous image from Cloudinary
       if (oldPublicId) {
         await deleteCloudinaryAsset(oldPublicId, "image").catch((err) =>
-          console.error(`Failed to delete old asset ${oldPublicId}:`, err),
+          logger.error(
+            `[UserController.updateUser] Failed to delete old asset ${oldPublicId}:`,
+            err,
+          ),
         );
       }
     }
@@ -242,7 +260,7 @@ export const updateUser = async (req: Request, res: Response) => {
       );
     }
 
-    console.log(error);
+    logger.error("[UserController.updateUser] Update user error:", error);
     return res
       .status(500)
       .json({ message: `Internal Server Error: ${error.message}` });
