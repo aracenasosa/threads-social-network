@@ -9,7 +9,14 @@ import { Post, FeedResponse } from "@/shared/types/post.types";
 
 /** Type for partial post updates */
 export type PostUpdate = Partial<
-  Pick<Post, "isLiked" | "likesCount" | "repliesCount">
+  Pick<
+    Post,
+    | "isLiked"
+    | "likesCount"
+    | "repliesCount"
+    | "isLikedByAuthor"
+    | "authorAvatarUrl"
+  >
 >;
 
 /** Type for snapshot of feed queries (used for rollback) */

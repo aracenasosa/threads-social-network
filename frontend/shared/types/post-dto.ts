@@ -33,8 +33,8 @@ export interface CreatePostFormData {
  */
 export const POST_CONSTRAINTS = {
   MAX_FILES: 20,
-  MAX_TOTAL_SIZE_MB: 50,
-  MAX_TOTAL_SIZE_BYTES: 50 * 1024 * 1024, // 50MB in bytes
+  MAX_TOTAL_SIZE_MB: 40,
+  MAX_TOTAL_SIZE_BYTES: 40 * 1024 * 1024, // 40MB in bytes
   ALLOWED_IMAGE_TYPES: [
     "image/jpeg",
     "image/jpg",

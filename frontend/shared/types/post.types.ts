@@ -27,6 +27,9 @@ export interface Post {
   rootPost?: string | null;
   replies?: Post[];
   isLiked?: boolean;
+  isLikedByAuthor?: boolean;
+  authorAvatarUrl?: string | null;
+  threadAuthorId?: string;
   isEdited?: boolean;
   threadIndex?: number | null;
   threadTotal?: number | null;

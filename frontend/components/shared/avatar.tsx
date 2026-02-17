@@ -7,12 +7,13 @@ interface AvatarProps {
   src?: string;
   alt: string;
   fallback: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: () => void;
 }
 
 const sizeClasses = {
+  xs: 'h-5 w-5',
   sm: 'h-8 w-8',
   md: 'h-10 w-10',
   lg: 'h-12 w-12',

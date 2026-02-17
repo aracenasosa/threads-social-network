@@ -6,7 +6,7 @@ import { Post } from '@/shared/types/post.types';
 import { cn } from '@/shared/lib/utils';
 import { Avatar } from '@/components/shared/avatar';
 import { PostActions } from './post-actions';
-import { MoreHorizontal, X } from 'lucide-react';
+import { MoreHorizontal, X, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -169,14 +169,23 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
                   </>
                 )}
 
-                {/* In Thread View, date is sometimes just shown next to username or omitted, 
-                    user asked for "only username". Assuming just username for now. 
-                    If date is needed, we can re-add it. 
-                    Screenshot shows "pruebascondoriano 26m". 
-                    So we should keep the date but maybe style it differently? 
-                    User said "use only the username, no the full name".
-                    I will keep the date as it provides context.
-                */}
+                {/* Author Like Badge */}
+                {post.isLikedByAuthor && (
+                  <div className="flex items-center ml-2 relative group" title="Liked by author">
+                    <div className="relative">
+                      <Avatar 
+                        src={post.authorAvatarUrl || undefined} 
+                        alt="Author" 
+                        fallback="A"
+                        size="xs" 
+                        className="w-5 h-5 border border-background shadow-sm"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 shadow-sm">
+                        <Heart size={10} className="fill-red-500 text-red-500" />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               </div>
               {!hideMenu && user?.id === post.author._id && (
@@ -245,6 +254,24 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
               onReply={() => setIsReplyModalOpen(true)}
               onLike={handleLike}
             />
+
+            {/* View Replies Label */}
+            {post.repliesCount > 0 && !isMainPost && (
+              <div 
+                className="mt-2"
+                data-no-thread-nav="true"
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/posts/${post._id}/thread`);
+                  }}
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  View {post.repliesCount} {post.repliesCount === 1 ? 'reply' : 'replies'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

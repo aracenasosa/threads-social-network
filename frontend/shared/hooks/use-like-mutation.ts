@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { likeService } from "@/services/like.service";
+import { useAuthStore } from "@/store/auth.store";
 import { Post } from "@/shared/types/post.types";
 import {
   captureQuerySnapshots,
@@ -31,15 +32,33 @@ export const useLikeMutation = () => {
       const { previousFeeds, previousThreads } =
         await captureQuerySnapshots(queryClient);
 
-      // Optimistic toggle function - handles optional isLiked
-      const toggleLike = (post: Post) => ({
-        isLiked: !post.isLiked,
-        likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1,
-      });
+      // Optimistic toggle function - handles optional isLiked and isLikedByAuthor
+      const toggleLike = (post: Post, currentUser?: any) => {
+        const newIsLiked = !post.isLiked;
+        const isAuthor = currentUser?.id === post.threadAuthorId;
+
+        return {
+          isLiked: newIsLiked,
+          likesCount: post.isLiked ? post.likesCount - 1 : post.likesCount + 1,
+          isLikedByAuthor: isAuthor ? newIsLiked : post.isLikedByAuthor,
+          // Ensure we have an avatar URL if they liked it (fallback to current user avatar if they ARE the author)
+          authorAvatarUrl:
+            isAuthor && newIsLiked
+              ? post.authorAvatarUrl || currentUser?.avatarUrl
+              : post.authorAvatarUrl,
+        };
+      };
+
+      // Get current user for optimistic author check
+      const currentUser = useAuthStore.getState().user;
 
       // Optimistically update feeds and threads
-      updatePostInFeedCache(queryClient, postId, toggleLike);
-      updatePostInThreadCache(queryClient, postId, toggleLike);
+      updatePostInFeedCache(queryClient, postId, (post) =>
+        toggleLike(post, currentUser),
+      );
+      updatePostInThreadCache(queryClient, postId, (post) =>
+        toggleLike(post, currentUser),
+      );
 
       return { previousFeeds, previousThreads };
     },
