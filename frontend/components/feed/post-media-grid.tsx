@@ -160,7 +160,7 @@ export function PostMediaGrid({
             disabled={!canScrollPrev}
             className={cn(
               'absolute left-3 top-1/2 -translate-y-1/2 z-10',
-              'w-12 h-12 rounded-full flex items-center justify-center',
+              'w-12 h-12 rounded-full flex items-center justify-center cursor-pointer',
               'text-white/70 transition-all hover:text-white hover:bg-white/10',
               !canScrollPrev && 'opacity-0 pointer-events-none',
               !isFullScreen && 'w-8 h-8 bg-black/40'
@@ -175,7 +175,7 @@ export function PostMediaGrid({
             disabled={!canScrollNext}
             className={cn(
               'absolute right-3 top-1/2 -translate-y-1/2 z-10',
-              'w-12 h-12 rounded-full flex items-center justify-center',
+              'w-12 h-12 rounded-full flex items-center justify-center cursor-pointer',
               'text-white/70 transition-all hover:text-white hover:bg-white/10',
               !canScrollNext && 'opacity-0 pointer-events-none',
               !isFullScreen && 'w-8 h-8 bg-black/40'

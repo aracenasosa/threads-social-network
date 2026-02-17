@@ -82,7 +82,13 @@ export default function ThreadPage() {
         {/* Header */}
         <div className="sticky top-0 z-50 border-b border-border px-4 h-14 flex items-center justify-between bg-card">
           <button 
-              onClick={() => router.back()}
+              onClick={() => {
+                if (post && !post.parentPost) {
+                  router.push('/feed');
+                } else {
+                  router.back();
+                }
+              }}
               className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
               <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -94,19 +100,17 @@ export default function ThreadPage() {
         <div className="flex-1">
           {/* Main Post */}
           <div className="px-4 pt-4">
-             {post.rootPost && (
-               <div className="mb-4">
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   className="w-full text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer flex items-center justify-center gap-2"
+             {post.rootPost && String(post.parentPost) !== String(post.rootPost) && (
+               <div className="mb-4 flex justify-center">
+                 <button
                    onClick={() => router.push(`/posts/${post.rootPost}/thread`)}
+                   className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                  >
-                   View original thread
-                 </Button>
+                   Go back to original thread
+                 </button>
                </div>
              )}
-             <PostCard post={post} isThreadView={true} hideConnectorLine={true} />
+             <PostCard post={post} isThreadView={true} isMainPost={true} hideConnectorLine={true} />
           </div>
 
           {/* Divider with replies count */}

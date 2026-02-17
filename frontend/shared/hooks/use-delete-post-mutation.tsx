@@ -3,22 +3,23 @@ import {
   useQueryClient,
   InfiniteData,
 } from "@tanstack/react-query";
-import apiClient from "@/shared/lib/axios";
+import { postService } from "@/services/post.service";
 import { toast } from "sonner";
 import { Post, FeedResponse } from "@/shared/types/post.types";
 import { rollbackFeedCaches, FeedSnapshot } from "@/shared/lib/cache-updates";
 
+import { useRouter, useParams } from "next/navigation";
+
 export function useDeletePostMutation() {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const params = useParams();
 
   return useMutation({
     mutationFn: async (postId: string) => {
-      const { data } = await apiClient.delete(`/posts/${postId}`);
-      return data;
+      return postService.deletePost(postId);
     },
     onMutate: async (postId: string) => {
-      const toastId = toast.loading("Deleting...");
-
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["feed"] });
       await queryClient.cancelQueries({ queryKey: ["thread"] });
@@ -111,9 +112,10 @@ export function useDeletePostMutation() {
         },
       );
 
+      const toastId = toast.loading("Deleting...");
       return { toastId, previousFeeds, previousThreads };
     },
-    onSuccess: (_, __, context) => {
+    onSuccess: (_, postId, context) => {
       toast.success("Deleted", { id: context.toastId });
       // Invalidate all post-related queries
       queryClient.invalidateQueries({ queryKey: ["feed"] });
@@ -121,6 +123,11 @@ export function useDeletePostMutation() {
       queryClient.invalidateQueries({ queryKey: ["post"] });
       queryClient.invalidateQueries({ queryKey: ["user-posts"] });
       queryClient.invalidateQueries({ queryKey: ["liked-posts"] });
+
+      // Redirect to feed if we are on the deleted post's page
+      if (params.id === postId) {
+        router.push("/feed");
+      }
     },
     onError: (err: any, _variables, context) => {
       toast.error(err.response?.data?.message || "Failed to delete post", {

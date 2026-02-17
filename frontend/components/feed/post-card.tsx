@@ -35,11 +35,12 @@ import { useLikeMutation } from '@/shared/hooks/use-like-mutation';
 interface PostCardProps {
   post: Post;
   isThreadView?: boolean;
+  isMainPost?: boolean;
   hideConnectorLine?: boolean;
   hideMenu?: boolean;
 }
 
-export function PostCard({ post, isThreadView = false, hideConnectorLine = false, hideMenu = false }: PostCardProps) {
+export function PostCard({ post, isThreadView = false, isMainPost = false, hideConnectorLine = false, hideMenu = false }: PostCardProps) {
   const router = useRouter();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -117,7 +118,8 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
       <div
         onClick={handlePostClick}
         className={cn(
-          "px-4 py-3 transition-colors cursor-pointer border-b border-border bg-card",
+          "px-4 py-3 transition-colors border-b border-border bg-card",
+          !(isThreadView && isMainPost) && "cursor-pointer",
           isThreadView && "border-none"
         )}
       >
@@ -213,11 +215,18 @@ export function PostCard({ post, isThreadView = false, hideConnectorLine = false
             </div>
 
             {/* Text */}
-            {post.text && (
-              <p className="text-foreground mt-1 whitespace-pre-wrap leading-normal text-[15px]">
-                {post.text}
-              </p>
-            )}
+            <div className="flex items-center gap-2 mt-1">
+              {post.text && (
+                <p className="text-foreground whitespace-pre-wrap break-words leading-normal text-[15px]">
+                  {post.text}
+                </p>
+              )}
+              {isThreadView && typeof post.threadIndex === 'number' && typeof post.threadTotal === 'number' && post.threadTotal > 1 && (
+                <span className="inline-flex items-center justify-center bg-muted/60 text-muted-foreground px-1.5 py-0.5 rounded-full text-[11px] font-medium leading-none min-w-[24px] self-start mt-0.5">
+                  {post.threadIndex}/{post.threadTotal}
+                </span>
+              )}
+            </div>
 
             {/* Media Grid / carousel */}
             <PostMediaGrid

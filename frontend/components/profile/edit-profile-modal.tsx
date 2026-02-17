@@ -16,7 +16,7 @@ import { Avatar } from '@/components/shared/avatar';
 import { useAuthStore } from '@/store/auth.store';
 import { UserProfile } from '@/shared/types/auth.types';
 import { Camera, Lock } from 'lucide-react';
-import apiClient from '@/shared/lib/axios';
+import { userService } from '@/services/user.service';
 import { toast } from 'sonner';
 import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
 
@@ -72,22 +72,14 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
         formData.append('profilePhoto', selectedFile);
       }
 
-      const toastId = toast.loading('Updating...');
+      let toastId: string | number | undefined = undefined;
 
-      const { data } = await apiClient.patch<{ user: UserProfile }>(
-        `/users/update/${userProfile.id}`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      const { user } = await userService.updateUser(userProfile.id, formData);
 
       toast.success('Profile updated successfully', { id: toastId });
-      setUser(data.user); // Update global auth state immediately
+      setUser(user); // Update global auth state immediately
       await checkAuth(); // Ensure full sync
-      if (onUpdate) onUpdate(data.user);
+      if (onUpdate) onUpdate(user);
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to update profile');

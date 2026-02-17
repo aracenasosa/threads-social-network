@@ -18,7 +18,7 @@ import {
 import {
   API_BASE_URL,
   AUTH_LOGIN_ENDPOINT,
-  AUTH_REGISTER_ENDPOINT,
+  USER_REGISTER_ENDPOINT,
   AUTH_LOGOUT_ENDPOINT,
   AUTH_REFRESH_ENDPOINT,
   AUTH_GOOGLE_ENDPOINT,
@@ -136,8 +136,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true, error: null });
 
       const response = await apiClient.post<AuthResponse>(
-        AUTH_REGISTER_ENDPOINT,
-        data,
+        USER_REGISTER_ENDPOINT,
+        {
+          fullName: data.fullName,
+          userName: data.username,
+          email: data.email,
+          password: data.password,
+        },
       );
 
       // If signup returns token, auto-login

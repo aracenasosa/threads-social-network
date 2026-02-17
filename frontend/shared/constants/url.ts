@@ -8,7 +8,6 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
  * Authentication endpoints
  */
 export const AUTH_LOGIN_ENDPOINT = "/auth/login";
-export const AUTH_REGISTER_ENDPOINT = "/auth/register";
 export const AUTH_LOGOUT_ENDPOINT = "/auth/logout";
 export const AUTH_REFRESH_ENDPOINT = "/auth/refresh";
 export const AUTH_GOOGLE_ENDPOINT = "/auth/google";
@@ -20,6 +19,9 @@ export const USER_BY_ID_ENDPOINT = (userId: string) => `/users/${userId}`;
 export const USER_BY_USERNAME_ENDPOINT = (username: string) =>
   `/users/username/${username}`;
 export const USER_SEARCH_ENDPOINT = "/users/search";
+export const USER_REGISTER_ENDPOINT = "/users";
+export const USER_UPDATE_ENDPOINT = (userId: string) =>
+  `/users/update/${userId}`;
 
 /**
  * Post endpoints
@@ -29,3 +31,10 @@ export const POST_FEED_ENDPOINT = "/posts/feed";
 export const POST_LIKED_ENDPOINT = "/posts/liked";
 export const POST_THREAD_ENDPOINT = (postId: string) =>
   `/posts/${postId}/thread`;
+export const POST_BY_ID_ENDPOINT = (postId: string) => `/posts/${postId}`;
+
+/**
+ * Like endpoints
+ */
+export const LIKE_TOGGLE_ENDPOINT = (postId: string) =>
+  `/likes/${postId}/toggle`;

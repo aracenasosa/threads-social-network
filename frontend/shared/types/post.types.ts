@@ -28,6 +28,8 @@ export interface Post {
   replies?: Post[];
   isLiked?: boolean;
   isEdited?: boolean;
+  threadIndex?: number | null;
+  threadTotal?: number | null;
 }
 
 export interface FeedResponse {

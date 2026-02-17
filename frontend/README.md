@@ -21,6 +21,7 @@ A modern, responsive, and high-performance web interface for the Social Network 
 - **Data Fetching**: [TanStack Query v5](https://tanstack.com/query/latest)
 - **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
 - **Icons**: [Lucide React](https://lucide.dev/)
+- **Testing**: [Jest](https://jestjs.io/) & [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
 
 ## 📂 Project Structure
 

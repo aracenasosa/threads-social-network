@@ -1,4 +1,5 @@
 import apiClient from "@/shared/lib/axios";
+import { LIKE_TOGGLE_ENDPOINT } from "@/shared/constants/url";
 
 export const likeService = {
   toggleLike: async (postId: string) => {
@@ -6,7 +7,7 @@ export const likeService = {
       message: string;
       liked: boolean;
       likesCount: number;
-    }>(`/likes/${postId}/toggle`, {});
+    }>(LIKE_TOGGLE_ENDPOINT(postId), {});
     return data;
   },
 };

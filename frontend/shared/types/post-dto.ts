@@ -10,6 +10,9 @@ export interface CreatePostDTO {
   text: string;
   parentPost?: string; // Post ID (for replies, optional for new posts)
   media?: File[]; // Array of files (images/videos), max 4 files, max 50MB total
+  suppressToast?: boolean; // Frontend only: suppress success/loading toasts
+  threadIndex?: number;
+  threadTotal?: number;
 }
 
 /**
@@ -21,6 +24,8 @@ export interface CreatePostFormData {
   text: string;
   parentPost?: string;
   media?: File[];
+  threadIndex?: number;
+  threadTotal?: number;
 }
 
 /**

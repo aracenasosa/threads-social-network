@@ -118,6 +118,14 @@ apiClient.interceptors.response.use(
 
     // Handle other errors (400, 403, 404, 500, etc.)
     if (error.response && error.response.data && !originalRequest._retry) {
+      const status = error.response.status;
+      const method = error.config?.method?.toUpperCase();
+
+      // Skip automatic toast for 404 GET requests (usually handled by the UI)
+      if (status === 404 && method === "GET") {
+        return Promise.reject(error);
+      }
+
       const errorMessage =
         (error.response.data as any).message || "An unexpected error occurred";
       toast.error(errorMessage);

@@ -95,17 +95,21 @@ export function EditPostModal({
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
+    // Close modal immediately
+    onOpenChange(false);
 
-    try {
-      await onSubmit(trimmedText);
-      onOpenChange(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update post. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Continue in background
+    Promise.resolve().then(async () => {
+      try {
+        await onSubmit(trimmedText);
+      } catch (err: any) {
+        // Modal is closed, show error toast here if needed, or let mutation handle it
+        // Mutation handles specific errors, but if onSubmit throws we might want a fallback
+        console.error("Edit failed in background", err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
   };
 
   if (!user) return null;
@@ -148,7 +152,7 @@ export function EditPostModal({
             Cancel
           </Button>
           <h2 className="text-base font-semibold text-foreground">
-            Edit thread...
+            Edit post
           </h2>
           <div className="w-16" /> {/* Spacer for centering */}
         </div>
@@ -290,15 +294,12 @@ function CharacterCounter({ current, max }: { current: number; max: number }) {
   const remaining = max - current;
   const isOverLimit = remaining < 0;
 
-  // Only show when close to limit (e.g. 80%) or already over
-  if (current < max * 0.8 && !isOverLimit) return null;
-
   return (
     <div className={cn(
       "text-[13px] font-medium transition-colors",
       isOverLimit 
         ? "text-destructive" 
-        : "dark:text-gray-400 text-gray-900" // Black in light mode
+        : "text-muted-foreground"
     )}>
       {remaining}
     </div>

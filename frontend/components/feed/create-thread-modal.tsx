@@ -184,43 +184,67 @@ export function CreateThreadModal({
   const handleSubmit = async () => {
     if (!user || !canSubmit) return;
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      // Post first entry (or reply to parent)
-      const firstEntry = entries[0];
-      const postData: CreatePostDTO = {
-        author: user.id,
-        text: firstEntry.text.trim(),
-        media: firstEntry.files.length > 0 ? firstEntry.files : undefined,
-        parentPost: parentPostId,
-      };
-
-      const firstPost = await createPostMutation.mutateAsync(postData);
-
-      // Post subsequent entries as replies to the first post
-      const rootPostId = firstPost.post._id;
-      
-      for (let i = 1; i < entries.length; i++) {
-        const entry = entries[i];
-        if (entry.text.trim() || entry.files.length > 0) {
-          const replyData: CreatePostDTO = {
-            author: user.id,
-            text: entry.text.trim(),
-            media: entry.files.length > 0 ? entry.files : undefined,
-            parentPost: rootPostId, 
-          };
-          await createPostMutation.mutateAsync(replyData);
+    // Close modal immediately
+    onOpenChange(false);
+    
+    // Continue in background
+    Promise.resolve().then(async () => {
+      const toastId = toast.loading("Posting...");
+      try {
+        // Post first entry (or reply to parent)
+        const firstEntry = entries[0];
+        const postData: CreatePostDTO = {
+          author: user.id,
+          text: firstEntry.text.trim(),
+          media: firstEntry.files.length > 0 ? firstEntry.files : undefined,
+          parentPost: parentPostId,
+          threadIndex: 1,
+          threadTotal: entries.length,
+          suppressToast: true,
+        };
+  
+        const firstPost = await createPostMutation.mutateAsync(postData);
+  
+        // Post subsequent entries as replies to the first post
+        const rootPostId = firstPost.post._id;
+        
+        for (let i = 1; i < entries.length; i++) {
+          const entry = entries[i];
+          if (entry.text.trim() || entry.files.length > 0) {
+            const replyData: CreatePostDTO = {
+              author: user.id,
+              text: entry.text.trim(),
+              media: entry.files.length > 0 ? entry.files : undefined,
+              parentPost: rootPostId, 
+              threadIndex: i + 1,
+              threadTotal: entries.length,
+              suppressToast: true,
+            };
+            await createPostMutation.mutateAsync(replyData);
+          }
         }
-      }
 
-      onOpenChange(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create thread. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+        // Show success toast with View action (handled here since we suppressed individual toasts)
+        toast.success(
+          <div className="flex w-full items-center justify-between gap-2 min-w-[300px]">
+            <span className="truncate">Posted</span>
+            <span 
+              className="font-bold cursor-pointer hover:underline text-sm shrink-0"
+              onClick={() => window.location.href = `/posts/${rootPostId}/thread`}
+            >
+              View
+            </span>
+          </div>, 
+          { id: toastId, duration: 5000 }
+        );
+
+      } catch (err: any) {
+        const errorMsg = err.response?.data?.message || 'Failed to create thread.';
+        toast.error(errorMsg, { id: toastId });
+      } finally {
+        setIsSubmitting(false);
+      }
+    });
   };
 
   const triggerFileInput = (entryId: string, accept: string) => {
@@ -464,7 +488,7 @@ function ThreadEntryItem({
             value={entry.text}
             onChange={(e) => handleTextChange(entry.id, e.target.value)}
             onFocus={() => onFocus(entry.id)}
-            placeholder="What's new?"
+            placeholder={index > 0 ? "Say more..." : "What's new?"}
             className={cn(
               'w-full bg-transparent border-none outline-none resize-none',
               'text-foreground placeholder:text-muted-foreground',
@@ -568,15 +592,12 @@ function CharacterCounter({ current, max }: { current: number; max: number }) {
   const remaining = max - current;
   const isOverLimit = remaining < 0;
 
-  // Only show when close to limit (e.g. 80%) or already over
-  if (current < max * 0.8 && !isOverLimit) return null;
-
   return (
     <div className={cn(
       "text-[13px] font-medium transition-colors",
       isOverLimit 
         ? "text-destructive" 
-        : "dark:text-gray-400 text-gray-900" // Black in light mode
+        : "text-muted-foreground" // Use muted foreground as base color
     )}>
       {remaining}
     </div>

@@ -10,6 +10,7 @@ import {
   POST_FEED_ENDPOINT,
   POST_LIKED_ENDPOINT,
   POST_THREAD_ENDPOINT,
+  POST_BY_ID_ENDPOINT,
 } from "@/shared/constants/url";
 
 export const postService = {
@@ -63,6 +64,12 @@ export const postService = {
         formData.append("media", file);
       });
     }
+    if (postData.threadIndex !== undefined) {
+      formData.append("threadIndex", postData.threadIndex.toString());
+    }
+    if (postData.threadTotal !== undefined) {
+      formData.append("threadTotal", postData.threadTotal.toString());
+    }
 
     const { data } = await apiClient.post<CreatePostResponse>(
       POST_CREATE_ENDPOINT,
@@ -88,6 +95,18 @@ export const postService = {
     const { data } = await apiClient.get<FeedResponse>(
       `${POST_LIKED_ENDPOINT}?${params.toString()}`,
     );
+    return data;
+  },
+
+  updatePost: async (postId: string, text: string) => {
+    const { data } = await apiClient.patch(POST_BY_ID_ENDPOINT(postId), {
+      text,
+    });
+    return data;
+  },
+
+  deletePost: async (postId: string) => {
+    const { data } = await apiClient.delete(POST_BY_ID_ENDPOINT(postId));
     return data;
   },
 };

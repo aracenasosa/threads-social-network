@@ -25,6 +25,10 @@ export const loginSchema = z.object({
 
 export const signupSchema = z
   .object({
+    fullName: z
+      .string()
+      .min(1, "Full name is required")
+      .min(2, "Full name must be at least 2 characters"),
     username: z
       .string()
       .min(1, "Username is required")
@@ -50,4 +54,3 @@ export const signupSchema = z
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type SignupFormData = z.infer<typeof signupSchema>;
-
