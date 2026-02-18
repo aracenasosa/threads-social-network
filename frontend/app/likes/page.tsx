@@ -2,6 +2,7 @@
 
 import { Sidebar } from '@/components/layout/sidebar';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { MobileNav } from '@/components/layout/mobile-nav';
 import { PostCard } from '@/components/feed/post-card';
 import { useFeed } from '@/shared/hooks/use-feed';
 import { Button } from '@/components/ui/button';
@@ -29,9 +30,13 @@ export default function LikesPage() {
   const likedItems = data?.pages.flatMap(page => page.items) || [];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <Sidebar />
-      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-t-3xl pb-20 sm:pb-0 bg-card">
+      
+      {/* Mobile Top Navigation */}
+      <MobileNav />
+      
+      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-4 md:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-t-3xl pb-20 sm:pb-0 bg-card">
         <div className="px-6 py-4 border-b border-border bg-card">
           <h1 className="text-xl font-bold text-foreground">Likes</h1>
         </div>

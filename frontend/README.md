@@ -12,6 +12,24 @@ A modern, responsive, and high-performance web interface for the Social Network 
 - **Interactive UI**: Components built with Radix UI primitives for accessibility.
 - **Reply Sorting**: Toggle between "Top" and "Recent" replies in thread views with optimized recursive fetching.
 
+### 📱 Responsive Design Strategy
+
+The application is fully responsive with a mobile-first approach, using Tailwind CSS breakpoints:
+
+- **Mobile (< 640px)**:
+  - Layout switches to a vertical stack (`flex-col`).
+  - **Top Navigation**: A persistent `MobileNav` bar appears at the top (Logo, Menu, Back Button).
+  - **Bottom Navigation**: A fixed bar at the bottom for primary actions.
+  - **Sidebar**: Hidden.
+- **Tablet (≥ 640px)**:
+  - Layout switches to a horizontal row (`flex-row`).
+  - **Sidebar**: Visible on the left (icons only or slim version).
+  - **Navigation**: Top and Bottom mobile navs are hidden.
+  - **Content**: Centered with appropriate margins.
+- **Desktop (≥ 1024px)**:
+  - **Sidebar**: Fully expanded with labels.
+  - **Content**: Centered with wider margins.
+
 ## 🚀 Tech Stack
 
 - **Framework**: [Next.js 16](https://nextjs.org/) (React 19)
@@ -21,7 +39,19 @@ A modern, responsive, and high-performance web interface for the Social Network 
 - **Data Fetching**: [TanStack Query v5](https://tanstack.com/query/latest)
 - **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Testing**: [Jest](https://jestjs.io/) & [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- **Testing**: [Jest](https://jestjs.io/) & [Supertest](https://github.com/ladjs/supertest)
+
+### 📝 Logging (Winston)
+
+We use **Winston** for robust logging with different levels and formats based on the environment:
+
+- **Levels**: `error`, `warn`, `info`, `http`, `debug`.
+- **Colors**: Log levels are color-coded for better readability in the console.
+- **Format**: Includes timestamp (`YYYY-MM-DD HH:mm:ss:ms`) and message.
+- **Transports**: Console transport is enabled by default. File transports can be easily uncommented in `src/utils/logger.ts`.
+- **Environment Awareness**:
+  - **Development**: Logs everything from `debug` level and up.
+  - **Production**: Logs only `warn` and `error` levels to reduce noise.
 
 ## 📂 Project Structure
 

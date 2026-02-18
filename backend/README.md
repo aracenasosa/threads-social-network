@@ -11,8 +11,21 @@ A robust and scalable RESTful API built with **Node.js**, **Express**, and **Typ
 - **Authentication**: [JWT](https://jwt.io/) (JSON Web Tokens) & Google OAuth
 - **Media Storage**: [Cloudinary](https://cloudinary.com/)
 - **Documentation**: [Swagger UI](https://swagger.io/tools/swagger-ui/)
-- **Logging**: Morgan
+- **HTTP Logger**: [Morgan](https://github.com/expressjs/morgan)
+- **Logging**: [Winston](https://github.com/winstonjs/winston) (Custom implementation)
 - **Testing**: [Jest](https://jestjs.io/) & [Supertest](https://github.com/ladjs/supertest)
+
+### 📝 Logging (Winston)
+
+We use **Winston** for robust logging with different levels and formats based on the environment:
+
+- **Levels**: `error`, `warn`, `info`, `http`, `debug`.
+- **Colors**: Log levels are color-coded for better readability in the console.
+- **Format**: Includes timestamp (`YYYY-MM-DD HH:mm:ss:ms`) and message.
+- **Transports**: Console transport is enabled by default. File transports can be easily uncommented in `src/utils/logger.ts`.
+- **Environment Awareness**:
+  - **Development**: Logs everything from `debug` level and up.
+  - **Production**: Logs only `warn` and `error` levels to reduce noise.
 
 ## 📂 Project Architecture
 

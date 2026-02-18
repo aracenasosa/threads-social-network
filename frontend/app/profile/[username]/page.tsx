@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Sidebar } from '@/components/layout/sidebar';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { MobileNav } from '@/components/layout/mobile-nav';
 import { useAuthStore } from '@/store/auth.store';
 import { userService } from '@/services/user.service';
 import { useFeed } from '@/shared/hooks/use-feed';
@@ -115,10 +116,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-t-3xl pb-20 sm:pb-0 bg-card">
+      {/* Mobile Top Navigation */}
+      <MobileNav />
+
+      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-4 md:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-t-3xl pb-20 sm:pb-0 bg-card">
         {/* Profile Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex justify-between items-start">

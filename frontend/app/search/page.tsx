@@ -5,6 +5,7 @@ import { debounce } from "lodash";
 import { useCallback } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { userService } from "@/services/user.service";
@@ -34,11 +35,14 @@ export default function SearchPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <Sidebar />
 
+      {/* Mobile Top Navigation */}
+      <MobileNav />
+
       <main
-        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl h-[calc(100vh-40px)] sm:h-[calc(100vh-40px)] bg-card pb-20 sm:pb-0"
+        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-4 md:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl h-[calc(100vh-40px)] sm:h-[calc(100vh-40px)] bg-card pb-20 sm:pb-0"
       >
         {/* Header */}
         <div className="px-4 py-4 flex items-center justify-between sticky top-0 bg-card border-b border-border z-10">

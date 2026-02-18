@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PostButton } from '@/components/shared/post-button';
 import { useState } from 'react';
+import { MobileNav } from '@/components/layout/mobile-nav';
+import { BottomNav } from '@/components/layout/bottom-nav';
 
 import { QUERY_KEYS } from '@/shared/lib/query-keys';
 import {
@@ -75,12 +77,27 @@ export default function ThreadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl pb-20 sm:pb-0 bg-card">
-        {/* Header */}
-        <div className="sticky top-0 z-50 border-b border-border px-4 h-14 flex items-center justify-between bg-card">
+      {/* Mobile Top Navigation with Back Button */}
+      <MobileNav 
+        showBackButton={true}
+        onBackClick={() => {
+          if (post && !post.parentPost) {
+            router.push('/feed');
+          } else {
+            router.back();
+          }
+        }}
+      />
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav />
+
+      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-4 md:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl pb-20 sm:pb-0 bg-card">
+        {/* Header - Hidden on Mobile */}
+        <div className="hidden sm:flex sticky top-0 z-50 border-b border-border px-4 h-14 items-center justify-between bg-card">
           <button 
               onClick={() => {
                 if (post && !post.parentPost) {

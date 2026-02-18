@@ -140,7 +140,8 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
                 But hide if explicitly requested (e.g. main post in thread view)
             */}
             {/* Thread Connector Line */}
-            {isThreadView && !hideConnectorLine && (
+            {/* Thread Connector Line */}
+            {isThreadView && !hideConnectorLine && typeof post.threadIndex === 'number' && typeof post.threadTotal === 'number' && post.threadTotal > 1 && (
               <div className={cn(
                   "w-0.5 bg-border absolute left-1/2 -translate-x-1/2 top-10 bottom-0"
               )} />

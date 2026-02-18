@@ -27,6 +27,7 @@ export function Toaster({ ...props }: ToasterProps) {
     <Sonner
       key={resolvedTheme}
       className="toaster group"
+      duration={2500}
       toastOptions={{
         classNames: {
           toast: `group toast ${toastBg} ${toastText} border-border shadow-lg`,

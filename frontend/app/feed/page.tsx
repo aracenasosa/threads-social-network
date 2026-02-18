@@ -18,6 +18,8 @@ import { Plus } from 'lucide-react';
 import { useTheme } from "next-themes";
 import { useFeed } from "@/shared/hooks/use-feed";
 
+import { MobileNav } from "@/components/layout/mobile-nav";
+
 export default function FeedPage() {
   const router = useRouter();
   const { user } = useAuthStore();
@@ -46,18 +48,21 @@ export default function FeedPage() {
   const posts = data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col sm:flex-row">
       <Sidebar />
+
+      {/* Mobile Top Navigation */}
+      <MobileNav />
 
       {/* Main Content Area */}
       <main
-        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl bg-card pb-20 sm:pb-0"
+        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-4 md:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl bg-card pb-20 sm:pb-0"
       >
-        {/* Create Post Input */}
+        {/* Create Post Input - Hidden on Mobile */}
         <div
-          className="p-4 border-b border-border bg-card"
+          className="hidden sm:flex p-4 border-b border-border bg-card"
         >
-          <div className="flex space-x-3 items-center">
+          <div className="flex space-x-3 items-center w-full">
             <Avatar
               src={user?.avatarUrl}
               alt={user?.userName || ""}
