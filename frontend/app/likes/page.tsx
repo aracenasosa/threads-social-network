@@ -1,6 +1,7 @@
 'use client';
 
 import { Sidebar } from '@/components/layout/sidebar';
+import { BottomNav } from '@/components/layout/bottom-nav';
 import { PostCard } from '@/components/feed/post-card';
 import { useFeed } from '@/shared/hooks/use-feed';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ export default function LikesPage() {
   return (
     <div className="min-h-screen bg-background flex">
       <Sidebar />
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-t-3xl pb-20 md:pb-0 bg-card">
+      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-t-3xl pb-20 sm:pb-0 bg-card">
         <div className="px-6 py-4 border-b border-border bg-card">
           <h1 className="text-xl font-bold text-foreground">Likes</h1>
         </div>
@@ -74,6 +75,9 @@ export default function LikesPage() {
           </div>
         </div>
       </main>
+
+      {/* Bottom Navigation - Mobile/Tablet */}
+      <BottomNav />
     </div>
   );
 }

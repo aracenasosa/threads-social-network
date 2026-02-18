@@ -53,7 +53,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col items-center w-24 border-r border-border py-6 sticky top-0 h-screen bg-background z-40 justify-between">
+      <aside className="hidden sm:flex flex-col items-center w-24 lg:border-r border-border py-6 sticky top-0 h-screen bg-background z-40 justify-between">
         {/* Logo */}
         <Link href="/feed">
           <div className="cursor-pointer">

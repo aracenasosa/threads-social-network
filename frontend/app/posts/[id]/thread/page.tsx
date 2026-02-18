@@ -78,7 +78,7 @@ export default function ThreadPage() {
     <div className="min-h-screen bg-background flex">
       <Sidebar />
 
-      <main className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-4xl pb-20 md:pb-0 bg-card">
+      <main className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl pb-20 sm:pb-0 bg-card">
         {/* Header */}
         <div className="sticky top-0 z-50 border-b border-border px-4 h-14 flex items-center justify-between bg-card">
           <button 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { debounce } from "lodash";
 import { useCallback } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { userService } from "@/services/user.service";
@@ -37,7 +38,7 @@ export default function SearchPage() {
       <Sidebar />
 
       <main
-        className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 rounded-4xl h-[calc(100vh-40px)] bg-card"
+        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl h-[calc(100vh-40px)] sm:h-[calc(100vh-40px)] bg-card pb-20 sm:pb-0"
       >
         {/* Header */}
         <div className="px-4 py-4 flex items-center justify-between sticky top-0 bg-card border-b border-border z-10">
@@ -93,6 +94,9 @@ export default function SearchPage() {
           )}
         </div>
       </main>
+
+      {/* Bottom Navigation - Mobile/Tablet */}
+      <BottomNav />
     </div>
   );
 }

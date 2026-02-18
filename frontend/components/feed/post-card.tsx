@@ -118,7 +118,7 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
       <div
         onClick={handlePostClick}
         className={cn(
-          "px-4 py-3 transition-colors border-b border-border bg-card",
+          "px-6 py-3 transition-colors border-b border-border bg-card",
           !(isThreadView && isMainPost) && "cursor-pointer",
           isThreadView && "border-none"
         )}
@@ -148,7 +148,7 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1 text-sm">
@@ -226,7 +226,7 @@ export function PostCard({ post, isThreadView = false, isMainPost = false, hideC
             {/* Text */}
             <div className="flex items-center gap-2 mt-1">
               {post.text && (
-                <p className="text-foreground whitespace-pre-wrap break-words leading-normal text-[15px]">
+                <p className="text-foreground whitespace-pre-wrap break-words overflow-wrap-anywhere leading-normal text-[15px] overflow-hidden">
                   {post.text}
                 </p>
               )}

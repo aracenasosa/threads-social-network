@@ -9,30 +9,18 @@ import { CreateThreadModal } from "@/components/feed/create-thread-modal";
 import { Avatar } from "@/components/shared/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Sidebar } from "@/components/layout/sidebar";
-import {
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetFooter,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { BottomNav } from "@/components/layout/bottom-nav";
+
 import { useInView } from "react-intersection-observer";
-import {
-  Plus,
-  Menu,
-  ChevronRight,
-  ArrowLeft,
-} from "lucide-react";
+import { Plus } from 'lucide-react';
+
 import { useTheme } from "next-themes";
 import { useFeed } from "@/shared/hooks/use-feed";
 
 export default function FeedPage() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
-  const { theme, setTheme } = useTheme();
+  const { user } = useAuthStore();
   const {
     data,
     fetchNextPage,
@@ -44,7 +32,6 @@ export default function FeedPage() {
   } = useFeed(10);
   const { ref, inView } = useInView();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [menuSection, setMenuSection] = useState<"root" | "appearance">("root");
 
   // Load more when scrolling to the bottom
   useEffect(() => {
@@ -53,10 +40,7 @@ export default function FeedPage() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
-  };
+
 
   // Flatten all pages into a single array
   const posts = data?.pages.flatMap((page) => page.items) ?? [];
@@ -67,8 +51,7 @@ export default function FeedPage() {
 
       {/* Main Content Area */}
       <main
-        className="flex-1 flex flex-col max-w-2xl mx-auto border border-border overflow-hidden mt-10 
-      rounded-4xl bg-card"
+        className="flex-1 flex flex-col w-full sm:max-w-2xl sm:mx-auto md:mr-[50px] lg:mr-auto sm:border sm:border-border overflow-hidden sm:mt-10 sm:rounded-4xl bg-card pb-20 sm:pb-0"
       >
         {/* Create Post Input */}
         <div
@@ -162,129 +145,16 @@ export default function FeedPage() {
         </div>
       </main>
 
-      {/* Floating Create Button (Mobile) */}
-      <Button
-        size="lg"
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg md:hidden z-50"
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNav />
+
+      {/* Floating Create Button - Tablet Only */}
+      <button
         onClick={() => setIsCreateModalOpen(true)}
+        className="hidden sm:flex lg:hidden fixed bottom-6 right-6 h-14 w-14 rounded-2xl bg-primary text-primary-foreground items-center justify-center shadow-lg hover:bg-primary/90 transition-all z-50"
       >
         <Plus className="h-6 w-6" />
-      </Button>
-
-      {/* Mobile menu drawer */}
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed bottom-6 left-6 h-12 w-12 rounded-full border border-border bg-background/80 shadow-md md:hidden z-50"
-            title="Menu"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent
-          side="bottom"
-          onOpenAutoFocus={() => setMenuSection("root")}
-        >
-          {menuSection === "root" ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-base">Menu</SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-col gap-1 px-2 py-2">
-                <Button
-                  variant="ghost"
-                  className="justify-between px-3 py-4"
-                  onClick={() => setMenuSection("appearance")}
-                >
-                  <span className="text-sm font-medium">Appearance</span>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{theme === "dark" ? "Dark" : "Light"}</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </div>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Insights
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Settings
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Feeds
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Saved
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Liked
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-3 py-4 text-sm"
-                >
-                  Report a problem
-                </Button>
-              </div>
-              <SheetFooter>
-                <Button
-                  variant="ghost"
-                  className="justify-start text-destructive"
-                  onClick={handleLogout}
-                >
-                  Log out
-                </Button>
-              </SheetFooter>
-            </>
-          ) : (
-            <>
-              <SheetHeader>
-                <div className="flex items-center gap-3 px-2 pt-2">
-                  <button
-                    type="button"
-                    className="rounded-full p-1 hover:bg-accent"
-                    onClick={() => setMenuSection("root")}
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </button>
-                  <SheetTitle className="text-base">Appearance</SheetTitle>
-                </div>
-              </SheetHeader>
-              <div className="flex flex-col gap-4 px-4 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">Dark mode</span>
-                    <span className="text-xs text-muted-foreground">
-                      Toggle between light and dark themes.
-                    </span>
-                  </div>
-                  <Switch
-                    checked={theme === "dark"}
-                    onCheckedChange={(checked) =>
-                      setTheme(checked ? "dark" : "light")
-                    }
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      </button>
 
       <CreateThreadModal
         open={isCreateModalOpen}
