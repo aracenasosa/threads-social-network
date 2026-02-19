@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
 import { CreatePostDTO } from "@/shared/types/post-dto";
 import { toast } from "sonner";
+import { TOAST_DURATION } from "@/components/ui/sonner";
 
 /**
  * Hook for creating new posts with optimistic updates.
@@ -28,20 +29,16 @@ export const useCreatePostMutation = () => {
     onSuccess: (responseData, variables, context) => {
       const newPost = responseData.post;
       if (!variables.suppressToast) {
-        toast.success(
-          <div className="flex w-full items-center justify-between gap-2 min-w-[300px]">
-            <span className="truncate">Posted</span>
-            <span 
-              className="font-bold cursor-pointer hover:underline text-sm shrink-0"
-              onClick={() => {
-                window.location.href = `/posts/${newPost._id}/thread`;
-              }}
-            >
-              View
-            </span>
-          </div>, 
-          { id: context.toastId, duration: 5000 }
-        );
+        toast.success("Posted", {
+          id: context.toastId,
+          duration: TOAST_DURATION,
+          action: {
+            label: "View",
+            onClick: () => {
+              window.location.href = `/posts/${newPost._id}/thread`;
+            },
+          },
+        });
       } else if (context.toastId) {
         toast.dismiss(context.toastId);
       }

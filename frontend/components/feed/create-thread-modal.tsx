@@ -22,6 +22,7 @@ import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
 import { validateFiles } from '@/shared/lib/file';
+import { TOAST_DURATION } from '../ui/sonner';
 
 interface ThreadEntry {
   id: string;
@@ -190,18 +191,16 @@ export function CreateThreadModal({
         }
 
         // Show success toast with View action (handled here since we suppressed individual toasts)
-        toast.success(
-          <div className="flex w-full items-center justify-between gap-2 min-w-[300px]">
-            <span className="truncate">Posted</span>
-            <span 
-              className="font-bold cursor-pointer hover:underline text-sm shrink-0"
-              onClick={() => window.location.href = `/posts/${rootPostId}/thread`}
-            >
-              View
-            </span>
-          </div>, 
-          { id: toastId, duration: 5000 }
-        );
+        toast.success("Posted", {
+          id: toastId,
+          duration: TOAST_DURATION,
+          action: {
+            label: "View",
+            onClick: () => {
+              window.location.href = `/posts/${rootPostId}/thread`;
+            },
+          },
+        });
 
       } catch (err: any) {
         const errorMsg = err.response?.data?.message || 'Failed to create thread.';

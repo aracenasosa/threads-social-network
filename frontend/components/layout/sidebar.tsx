@@ -83,7 +83,7 @@ export function Sidebar() {
                 key={index}
                 variant="ghost"
                 size="icon"
-                className={`h-12 w-12 rounded-xl transition-all duration-200 ${
+                className={`h-12 w-12 rounded-xl transition-all duration-200 cursor-pointer ${
                   isActive 
                     ? 'bg-primary/10 text-primary' 
                     : 'text-muted-foreground hover:bg-accent hover:text-foreground'
