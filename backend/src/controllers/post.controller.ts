@@ -19,9 +19,14 @@ import {
   BuildTreeParamsRoot,
 } from "../types/post.types";
 import { POST_CONSTRAINTS } from "../constants/post.constants";
+import { getNumber, getString } from "../utils/request";
 
 export const createPost = async (req: Request, res: Response) => {
-  const { author, text, parentPost, threadIndex, threadTotal } = req.body;
+  const author = getString(req.body.author);
+  const text = getString(req.body.text);
+  const parentPost = getString(req.body.parentPost);
+  const threadIndex = getNumber(req.body.threadIndex);
+  const threadTotal = getNumber(req.body.threadTotal);
 
   const files = (req.files as Express.Multer.File[]) || [];
   const textContent = text?.trim();
@@ -166,11 +171,14 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const getFeed = async (req: Request, res: Response) => {
   try {
-    const limit = Math.min(Number(req.query.limit ?? 10), 20);
-    const order = String(req.query.order ?? "desc") === "asc" ? 1 : -1;
-    const cursor = req.query.cursor ? new Date(String(req.query.cursor)) : null;
-    const author = req.query.author as string | undefined;
-    const filterType = req.query.filterType as string | undefined;
+    const limit = Math.min(Number(getString(req.query.limit) ?? 10), 20);
+    const order = getString(req.query.order) === "asc" ? 1 : -1;
+    const cursorStr = getString(req.query.cursor);
+    const cursor = cursorStr ? new Date(cursorStr) : null;
+
+    const author = getString(req.query.author);
+
+    const filterType = getString(req.query.filterType);
 
     const filter: any = {};
 
@@ -265,16 +273,21 @@ export const getFeed = async (req: Request, res: Response) => {
 
 export const getPostThread = async (req: Request, res: Response) => {
   try {
-    const postId = req.params.id;
+    const postId = getString(req.params.id);
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
+    if (
+      typeof postId !== "string" ||
+      !mongoose.Types.ObjectId.isValid(postId)
+    ) {
       return res.status(400).json({ message: "Invalid post id" });
     }
 
-    const orderParam = String(req.query.order ?? "asc").toLowerCase();
+    const orderParam = String(
+      getString(req.query.order) ?? "asc",
+    ).toLowerCase();
     const order: "asc" | "desc" = orderParam === "desc" ? "desc" : "asc";
 
-    const sortParam = String(req.query.sort ?? "top").toLowerCase();
+    const sortParam = String(getString(req.query.sort) ?? "top").toLowerCase();
     const sortBy: "top" | "recent" = sortParam === "recent" ? "recent" : "top";
 
     const rows = await Post.aggregate([
@@ -449,7 +462,9 @@ export const getPostThread = async (req: Request, res: Response) => {
 
     const thread = buildTree(buildParams);
 
-    logger.debug(`[getPostThread] Sort: ${sortBy} (Param: ${req.query.sort})`);
+    logger.debug(
+      `[getPostThread] Sort: ${sortBy} (Param: ${getString(req.query.sort)})`,
+    );
     if (rootDoc.descendants?.length > 0) {
       console.log(
         `[getPostThread] First Descendant Stats: Likes=${rootDoc.descendants[0].likesCount}, Replies=${rootDoc.descendants[0].repliesCount}`,
@@ -472,9 +487,14 @@ export const getLikedPosts = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const limit = Math.min(Number(req.query.limit ?? 10), 20);
-    const order = String(req.query.order ?? "desc") === "asc" ? 1 : -1;
-    const cursor = req.query.cursor ? new Date(String(req.query.cursor)) : null;
+    const limit = Math.min(Number(getString(req.query.limit) ?? 10), 20);
+
+    const order =
+      String(getString(req.query.order) ?? "desc") === "asc" ? 1 : -1;
+
+    const cursorValue = getString(req.query.cursor);
+
+    const cursor = cursorValue ? new Date(String(cursorValue)) : null;
 
     // 1) Find likes by the user
     // We want to paginate based on the Like's createdAt, or just fetch the posts
@@ -558,8 +578,8 @@ export const getLikedPosts = async (req: Request, res: Response) => {
  */
 export const updatePost = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const { text } = req.body;
+    const id = getString(req.params.id);
+    const text = getString(req.body.text);
     const userId = req.userId;
 
     if (!userId) {
@@ -600,7 +620,7 @@ export const updatePost = async (req: Request, res: Response) => {
     }
 
     // Update the post
-    post.text = text.trim();
+    post.text = text?.trim();
     post.isEdited = true;
     await post.save();
 
@@ -624,8 +644,12 @@ export const updatePost = async (req: Request, res: Response) => {
  */
 export const deletePost = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = getString(req.params.id);
     const userId = req.userId;
+
+    if (!id) {
+      return res.status(400).json({ message: "Invalid post id" });
+    }
 
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });

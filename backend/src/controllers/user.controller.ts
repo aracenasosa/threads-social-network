@@ -8,6 +8,7 @@ import {
 import { formatUserResponse, formatUsersResponse } from "../utils/user";
 import { signAccessToken, signRefreshToken } from "../utils/tokens";
 import { getRefreshCookieOptions } from "./auth.controller";
+import { getBoolean, getString } from "../utils/request";
 
 export const getUsers = async (_req: Request, res: Response) => {
   try {
@@ -23,7 +24,7 @@ export const getUsers = async (_req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = getString(req.params.id);
 
     const user = await User.findById(id);
 
@@ -42,9 +43,9 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const getUserByUsername = async (req: Request, res: Response) => {
   try {
-    const { username } = req.params;
+    const username = getString(req.params.username);
 
-    const user = await User.findOne({ userName: username.toLowerCase() });
+    const user = await User.findOne({ userName: username?.toLowerCase() });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -64,16 +65,16 @@ export const getUserByUsername = async (req: Request, res: Response) => {
 
 export const searchUsers = async (req: Request, res: Response) => {
   try {
-    const { q } = req.query;
+    const qParam = getString(req.query.q);
 
-    if (!q || typeof q !== "string") {
+    if (!qParam || typeof qParam !== "string") {
       return res.status(400).json({ message: "Search query is required" });
     }
 
     const users = await User.find({
       $or: [
-        { userName: { $regex: q, $options: "i" } },
-        { fullName: { $regex: q, $options: "i" } },
+        { userName: { $regex: qParam, $options: "i" } },
+        { fullName: { $regex: qParam, $options: "i" } },
       ],
     }).limit(20);
 
@@ -90,10 +91,15 @@ export const createUser = async (req: Request, res: Response) => {
   let profilePhotoPublicId = "";
 
   try {
-    const { userName, fullName, email, password, location, bio } = req.body;
+    const userName = getString(req.body.userName);
+    const fullName = getString(req.body.fullName);
+    const email = getString(req.body.email);
+    const password = getString(req.body.password);
+    const location = getString(req.body.location);
+    const bio = getString(req.body.bio);
 
-    const parsedEmail = String(email).toLowerCase();
-    const parsedUsername = String(userName).toLowerCase();
+    const parsedEmail = email?.toLowerCase();
+    const parsedUsername = userName?.toLowerCase();
 
     const user = await User.findOne({
       $or: [{ email: parsedEmail }, { userName: parsedUsername }],
@@ -161,7 +167,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const removeUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = getString(req.params.id);
 
     const user = await User.findByIdAndDelete(id);
 
@@ -182,8 +188,14 @@ export const updateUser = async (req: Request, res: Response) => {
   let newProfilePhotoPublicId = "";
 
   try {
-    const { id } = req.params;
-    const { userName, fullName, email, password, location, bio } = req.body;
+    const id = getString(req.params.id);
+    const userName = getString(req.body.userName);
+    const fullName = getString(req.body.fullName);
+    const email = getString(req.body.email);
+    const password = getString(req.body.password);
+    const location = getString(req.body.location);
+    const bio = getString(req.body.bio);
+    const showLocation = getBoolean(req.body.showLocation);
 
     const user = await User.findById(id);
 
@@ -217,8 +229,7 @@ export const updateUser = async (req: Request, res: Response) => {
     // ✅ Update other fields
     if (fullName) user.fullName = fullName;
     if (location !== undefined) user.location = location;
-    if (req.body.showLocation !== undefined)
-      user.showLocation = req.body.showLocation;
+    if (showLocation !== undefined) user.showLocation = showLocation;
     if (bio !== undefined) user.bio = bio;
     if (password) user.password = password;
 

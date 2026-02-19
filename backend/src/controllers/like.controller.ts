@@ -3,13 +3,14 @@ import logger from "../utils/logger";
 import { Like } from "../models/like.model";
 import { Post } from "../models/post.model";
 import mongoose from "mongoose";
+import { getString } from "../utils/request";
 
 export const toggleLike = async (req: Request, res: Response) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { postId } = req.params;
+    const postId = getString(req.params.id);
     const userId = req.userId; // Authenticated user from middleware
 
     if (!userId || !postId) {

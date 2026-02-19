@@ -11,6 +11,7 @@ import {
 import jwt from "jsonwebtoken";
 import { googleClient } from "../utils/googleClient";
 import { formatUserResponse } from "../utils/user";
+import { getString } from "../utils/request";
 
 export const getRefreshCookieOptions = () => {
   // Use secure cookies only in production (when served over HTTPS)
@@ -27,7 +28,14 @@ export const getRefreshCookieOptions = () => {
 
 export const loginUser = async (req: Request, res: Response) => {
   try {
-    const { emailOrUsername, password } = req.body;
+    const emailOrUsername = getString(req.body.emailOrUsername);
+    const password = getString(req.body.password);
+
+    if (!emailOrUsername || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email/Username and password are required" });
+    }
 
     const parsedUsernameOrEmail = emailOrUsername.toLowerCase();
 
@@ -102,7 +110,7 @@ export const logoutUser = async (req: Request, res: Response) => {
 
 export const googleLogin = async (req: Request, res: Response) => {
   try {
-    const { code } = req.body;
+    const code = getString(req.body.code);
     if (!code) {
       return res.status(400).json({ message: "Google code is required" });
     }
@@ -188,8 +196,7 @@ export const googleLogin = async (req: Request, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   try {
-    const refreshToken =
-      (req.cookies?.refreshToken as string | undefined) || "";
+    const refreshToken = getString(req.cookies?.refreshToken) || "";
 
     if (!refreshToken) {
       return res.status(401).json({ message: "Missing refresh token" });
