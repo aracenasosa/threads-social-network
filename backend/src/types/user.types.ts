@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document } from "mongoose"; // TS refresh for showLocation
 
 export interface IUser extends Document {
   userName: string;
@@ -9,6 +9,7 @@ export interface IUser extends Document {
   updatedAt: Date;
   profilePhoto?: string;
   location?: string;
+  showLocation?: boolean;
   bio?: string;
   profilePhotoPublicId?: string;
   refreshToken?: string | null;
@@ -26,5 +27,6 @@ export interface FormattedUser {
   updatedAt: Date;
   avatarUrl: string;
   location: string;
+  showLocation: boolean;
   bio: string;
 }

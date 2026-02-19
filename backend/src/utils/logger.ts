@@ -32,15 +32,7 @@ const format = winston.format.combine(
   ),
 );
 
-const transports = [
-  new winston.transports.Console(),
-  // Add file transports if needed for persistence
-  // new winston.transports.File({
-  //   filename: "logs/error.log",
-  //   level: "error",
-  // }),
-  // new winston.transports.File({ filename: "logs/all.log" }),
-];
+const transports = [new winston.transports.Console()];
 
 const logger = winston.createLogger({
   level: level(),

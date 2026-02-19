@@ -7,14 +7,17 @@ It consists of two main parts: a high-performance **Frontend** and a robust **Ba
 ## 🏗️ Project Structure
 
 - **[Frontend (Mobile-First Web App)](./frontend/README.md)**
-  - Built with **Next.js 16**, **React 19**, and **Tailwind CSS**.
+  - Built with **Next.js 16**, **React 19**, **Tailwind CSS** and **Shadcn UI**.
   - Features optimistic UI updates using **TanStack Query**.
   - Includes a comprehensive design system with **Radix UI** primitives.
+  - Includes a comprehensive testing system with **Jest**.
 
 - **[Backend (RESTful API)](./backend/README.md)**
   - Built with **Node.js**, **Express**, and **TypeScript**.
   - Utilizes **MongoDB** with **Mongoose** for data modeling.
   - Implements secure **JWT Authentication** and **Google OAuth**.
+  - Includes a comprehensive logging system with **Winston**.
+  - Includes a comprehensive testing system with **Jest** and **Supertest**.
 
 ## 🎯 Key Design Principles
 

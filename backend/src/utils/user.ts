@@ -1,4 +1,4 @@
-import { FormattedUser, IUser } from "../types";
+import { FormattedUser, IUser } from "../types/user.types";
 import { buildMediaUrl } from "./cloudinaryUpload";
 
 export function serializeAuthor(u: any, id?: string) {
@@ -44,6 +44,7 @@ export function formatUserResponse(user: IUser): FormattedUser {
         })
       : user.profilePhoto || "",
     location: user.location || "",
+    showLocation: user.showLocation ?? true,
     bio: user.bio || "",
   };
 }

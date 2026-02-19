@@ -25,14 +25,14 @@ export const toggleLike = async (req: Request, res: Response) => {
 
     let liked = false;
     if (existingLike) {
-      // 1️⃣ Unlike logic
+      // Unlike logic
       await Like.deleteOne({ _id: existingLike._id }).session(session);
       await Post.findByIdAndUpdate(postId, {
         $inc: { likesCount: -1 },
       }).session(session);
       liked = false;
     } else {
-      // 2️⃣ Like logic
+      // Like logic
       await Like.create([{ user: userId, post: postId }], { session });
       await Post.findByIdAndUpdate(postId, { $inc: { likesCount: 1 } }).session(
         session,

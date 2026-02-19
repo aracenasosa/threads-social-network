@@ -29,7 +29,6 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { emailOrUsername, password } = req.body;
 
-    // Validate email and username
     const parsedUsernameOrEmail = emailOrUsername.toLowerCase();
 
     const user = await User.findOne({
@@ -39,12 +38,10 @@ export const loginUser = async (req: Request, res: Response) => {
       ],
     }).select("+password");
 
-    // Check if user already exists
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if password is correct
     const match = await user.comparePassword(password);
     if (!match) {
       return res.status(400).json({ message: "Invalid password" });
@@ -131,7 +128,6 @@ export const googleLogin = async (req: Request, res: Response) => {
 
     const { email, sub: googleId, name, picture } = payload;
 
-    // Check if user exists
     let user = await User.findOne({ email });
 
     if (user) {
@@ -144,7 +140,6 @@ export const googleLogin = async (req: Request, res: Response) => {
       // Create new user
       // Generate unique username based on email or name
       let baseUsername = email.split("@")[0];
-      // remove special chars
       baseUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, "");
 
       let userName = baseUsername;

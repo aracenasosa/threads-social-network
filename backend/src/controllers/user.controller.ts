@@ -9,7 +9,7 @@ import { formatUserResponse, formatUsersResponse } from "../utils/user";
 import { signAccessToken, signRefreshToken } from "../utils/tokens";
 import { getRefreshCookieOptions } from "./auth.controller";
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (_req: Request, res: Response) => {
   try {
     const users = await User.find();
     return res.status(200).json(formatUsersResponse(users));
@@ -216,7 +216,9 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // ✅ Update other fields
     if (fullName) user.fullName = fullName;
-    if (location) user.location = location;
+    if (location !== undefined) user.location = location;
+    if (req.body.showLocation !== undefined)
+      user.showLocation = req.body.showLocation;
     if (bio !== undefined) user.bio = bio;
     if (password) user.password = password;
 

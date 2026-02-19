@@ -50,6 +50,10 @@ const userSchema = new Schema(
       trim: true,
       default: "",
     },
+    showLocation: {
+      type: Boolean,
+      default: true,
+    },
     bio: {
       type: String,
       trim: true,

@@ -5,7 +5,7 @@ import { ACCESS_TOKEN_SECRET, TokenPayload } from "../utils/tokens";
 export const authenticateMiddleware = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
 

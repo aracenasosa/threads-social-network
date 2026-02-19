@@ -1,9 +1,5 @@
 import { Router } from "express";
 import { toggleLike } from "../controllers/like.controller";
-import {
-  validateBody,
-  validateRequiredFields,
-} from "../middlewares/validateRequest.middleware";
 import { authenticateMiddleware } from "../middlewares/auth.middleware";
 
 /**
