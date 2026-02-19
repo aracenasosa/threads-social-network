@@ -12,6 +12,7 @@ import postRouter from "./routes/post.route";
 import likeRouter from "./routes/like.route";
 import authRouter from "./routes/auth.route";
 import logger from "./utils/logger";
+import { isDev, isTest } from "./utils/env";
 
 const app = express();
 
@@ -41,7 +42,7 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin only in development (like mobile apps or curl requests)
       if (!origin) {
-        if (process.env.NODE_ENV === "dev") {
+        if (isDev() || isTest()) {
           return callback(null, true);
         } else {
           const msg = "Not allowed by CORS";

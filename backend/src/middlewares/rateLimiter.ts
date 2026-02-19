@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import { isTest } from "../utils/env";
 
 // Rate limit for all requests
 export const globalLimiter = rateLimit({
@@ -6,7 +7,7 @@ export const globalLimiter = rateLimit({
   max: 1000, // Limit each IP to 1000 requests per `window` (here, per 15 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  skip: () => process.env.NODE_ENV === "test",
+  skip: () => isTest(),
   message: {
     status: 429,
     message:
@@ -20,7 +21,7 @@ export const authLimiter = rateLimit({
   max: 10, // Limit each IP to 10 requests per `window` (here, per 15 minutes)
   standardHeaders: true,
   legacyHeaders: false,
-  skip: () => process.env.NODE_ENV === "test",
+  skip: () => isTest(),
   message: {
     status: 429,
     message:

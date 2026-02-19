@@ -10,7 +10,7 @@ export const toggleLike = async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    const postId = getString(req.params.id);
+    const postId = getString(req.params.postId);
     const userId = req.userId; // Authenticated user from middleware
 
     if (!userId || !postId) {

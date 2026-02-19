@@ -13,14 +13,16 @@ import { googleClient } from "../utils/googleClient";
 import { formatUserResponse } from "../utils/user";
 import { getString } from "../utils/request";
 
+import { isProd } from "../utils/env";
+
 export const getRefreshCookieOptions = () => {
   // Use secure cookies only in production (when served over HTTPS)
-  const isProd = process.env.NODE_ENV === "prod"; // production must be HTTPS
+  const production = isProd();
 
   return {
     httpOnly: true as const,
-    secure: isProd, // secure cookies only over HTTPS in production
-    sameSite: isProd ? ("strict" as const) : ("lax" as const), // "lax" is more reliable for dev on localhost
+    secure: production, // secure cookies only over HTTPS in production
+    sameSite: production ? ("none" as const) : ("lax" as const), // "none" allows cross-origin cookies in production
     path: REFRESH_TOKEN_COOKIE_PATH,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days; should align with refresh expiry
   };
