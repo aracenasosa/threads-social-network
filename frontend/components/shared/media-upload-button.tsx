@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, Video } from 'lucide-react';
-import { POST_CONSTRAINTS } from '@/shared/types/post-dto';
+
 
 interface MediaUploadButtonProps {
   onFilesSelect: (files: File[]) => void;

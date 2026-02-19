@@ -8,7 +8,7 @@ export const loginSchema = z.object({
       (value) => {
         // If it contains '@', validate as email
         if (value.includes("@")) {
-          return z.string().email().safeParse(value).success;
+          return z.email().safeParse(value).success;
         }
         // Otherwise, it's a username (any non-empty string is valid)
         return true;
@@ -28,7 +28,7 @@ export const signupSchema = z
     fullName: z
       .string()
       .min(1, "Full name is required")
-      .min(2, "Full name must be at least 2 characters"),
+      .min(6, "Full name must be at least 6 characters"),
     username: z
       .string()
       .min(1, "Username is required")
@@ -37,10 +37,7 @@ export const signupSchema = z
         /^[a-zA-Z0-9_]+$/,
         "Username can only contain letters, numbers, and underscores",
       ),
-    email: z
-      .string()
-      .min(1, "Email is required")
-      .email("Invalid email address"),
+    email: z.email("Invalid email address").min(1, "Email is required"),
     password: z
       .string()
       .min(1, "Password is required")

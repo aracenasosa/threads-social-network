@@ -21,6 +21,7 @@ import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
+import { validateFiles } from '@/shared/lib/file';
 
 interface ThreadEntry {
   id: string;
@@ -63,30 +64,6 @@ export function CreateThreadModal({
     }
   }, [open]);
 
-  const validateFiles = useCallback((newFiles: File[]): string | null => {
-    if (newFiles.length > POST_CONSTRAINTS.MAX_FILES) {
-      return `Maximum ${POST_CONSTRAINTS.MAX_FILES} files allowed.`;
-    }
-
-    const allowedTypes = [
-      ...POST_CONSTRAINTS.ALLOWED_IMAGE_TYPES,
-      ...POST_CONSTRAINTS.ALLOWED_VIDEO_TYPES,
-    ];
-
-    for (const file of newFiles) {
-      if (!allowedTypes.includes(file.type as any)) {
-        return `File "${file.name}" has an unsupported type.`;
-      }
-    }
-
-    const totalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
-    if (totalSize > POST_CONSTRAINTS.MAX_TOTAL_SIZE_BYTES) {
-      return `Total file size exceeds ${POST_CONSTRAINTS.MAX_TOTAL_SIZE_MB}MB.`;
-    }
-
-    return null;
-  }, []);
-
   const updateEntry = useCallback((id: string, updates: Partial<ThreadEntry>) => {
     setEntries(prev => prev.map(entry =>
       entry.id === id ? { ...entry, ...updates } : entry
@@ -120,27 +97,15 @@ export function CreateThreadModal({
 
     const newFiles = [...entry.files, ...selectedFiles];
     
-    // Check constraints and show toasts for rejections
-    if (newFiles.length > POST_CONSTRAINTS.MAX_FILES) {
-      toast.error(`Maximum ${POST_CONSTRAINTS.MAX_FILES} files allowed per post.`);
-      return;
-    }
-
-    const totalSize = newFiles.reduce((sum, f) => sum + f.size, 0);
-    if (totalSize > POST_CONSTRAINTS.MAX_TOTAL_SIZE_BYTES) {
-      toast.error(`Total file size cannot exceed ${POST_CONSTRAINTS.MAX_TOTAL_SIZE_MB}MB.`);
-      return;
-    }
-
-    const typeError = validateFiles(newFiles);
-    if (typeError) {
-      toast.error(typeError);
+    const error = validateFiles(newFiles);
+    if (error) {
+      toast.error(error);
       return;
     }
 
     setError(null);
     updateEntry(id, { files: newFiles });
-  }, [entries, validateFiles, updateEntry]);
+  }, [entries, updateEntry]);
 
   const removeFile = useCallback((entryId: string, fileIndex: number) => {
     setEntries(prev => prev.map(entry =>

@@ -11,7 +11,7 @@ export function PostButton({ className, children = "Post", ...props }: PostButto
     <Button
       variant="ghost"
       className={cn(
-        "cursor-pointer border border-zinc-200 dark:border-zinc-700 bg-transparent text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors",
+        "cursor-pointer border border-zinc-300 dark:border-zinc-600 bg-transparent text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors",
         props.disabled && "cursor-not-allowed opacity-50",
         className
       )}

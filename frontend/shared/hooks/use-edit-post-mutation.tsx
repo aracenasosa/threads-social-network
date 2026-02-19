@@ -16,9 +16,7 @@ export function useEditPostMutation() {
   return useMutation({
     mutationFn: async ({ postId, text }: EditPostVariables) => {
       // Use postService
-      const { user } = await import("@/store/auth.store").then((m) =>
-        m.useAuthStore.getState(),
-      );
+      // Use postService
       // Actually postService doesn't need auth store, axios interceptor handles token.
       return postService.updatePost(postId, text);
     },

@@ -28,6 +28,7 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string;
   location?: string;
+  showLocation?: boolean;
   bio?: string;
   createdAt?: string;
   updatedAt?: string;

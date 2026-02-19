@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { CreateThreadModal } from '@/components/feed/create-thread-modal';
-import { X } from 'lucide-react';
+import { X, MapPin } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
 import { QUERY_KEYS } from '@/shared/lib/query-keys';
@@ -146,6 +146,13 @@ export default function ProfilePage() {
               <p className="text-[15px] text-foreground whitespace-pre-wrap">{profileUser.bio}</p>
             ) : (
                <p className="text-[15px] text-muted-foreground italic">No bio yet.</p>
+            )}
+
+            {profileUser.location && profileUser.showLocation && (
+              <div className="flex items-center text-muted-foreground">
+                <MapPin className="w-4 h-4 mr-1.5" />
+                <span className="text-sm">{profileUser.location}</span>
+              </div>
             )}
           </div>
 

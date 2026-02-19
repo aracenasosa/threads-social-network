@@ -42,7 +42,7 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
             type="button"
             variant="destructive"
             size="icon"
-            className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            className="absolute top-2 right-2 h-8 w-8 cursor-pointer rounded-full shadow-md"
             onClick={onRemove}
           >
             <X className="h-4 w-4" />
@@ -67,7 +67,7 @@ export function FilePreview({ file, onRemove, className }: FilePreviewProps) {
               type="button"
               variant="destructive"
               size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className="h-8 w-8 cursor-pointer rounded-full shadow-md"
               onClick={onRemove}
             >
               <X className="h-4 w-4" />

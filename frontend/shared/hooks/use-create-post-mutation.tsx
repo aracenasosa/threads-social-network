@@ -1,13 +1,6 @@
-import {
-  useMutation,
-  useQueryClient,
-  InfiniteData,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postService } from "@/services/post.service";
-import { useAuthStore } from "@/store/auth.store";
 import { CreatePostDTO } from "@/shared/types/post-dto";
-import { FeedResponse, Post } from "@/shared/types/post.types";
-import { rollbackFeedCaches, FeedSnapshot } from "@/shared/lib/cache-updates";
 import { toast } from "sonner";
 
 /**
@@ -16,7 +9,7 @@ import { toast } from "sonner";
  */
 export const useCreatePostMutation = () => {
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  
 
   return useMutation({
     mutationFn: (data: CreatePostDTO) => postService.createPost(data),

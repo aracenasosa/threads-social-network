@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { cn } from '@/shared/lib/utils';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,10 +15,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/shared/avatar';
 import { useAuthStore } from '@/store/auth.store';
 import { UserProfile } from '@/shared/types/auth.types';
-import { Camera, Lock } from 'lucide-react';
+import { Camera, MapPin, Loader2 } from 'lucide-react';
 import { userService } from '@/services/user.service';
+import { reverseGeocode } from '@/shared/lib/location';
 import { toast } from 'sonner';
 import { DiscardChangesDialog } from '@/components/shared/discard-changes-dialog';
+import { Switch } from '@/components/ui/switch';
 
 interface EditProfileModalProps {
   open: boolean;
@@ -33,7 +35,9 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
   const [userName, setUserName] = useState(userProfile.userName);
   const [bio, setBio] = useState(userProfile.bio || '');
   const [location, setLocation] = useState(userProfile.location || '');
+  const [showLocation, setShowLocation] = useState(userProfile.showLocation ?? true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [previewAvatar, setPreviewAvatar] = useState(userProfile.avatarUrl);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
@@ -44,6 +48,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
     setUserName(userProfile.userName);
     setBio(userProfile.bio || '');
     setLocation(userProfile.location || '');
+    setShowLocation(userProfile.showLocation ?? true);
     setPreviewAvatar(userProfile.avatarUrl);
   }, [userProfile]);
 
@@ -59,6 +64,34 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
     }
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const locationString = await reverseGeocode(latitude, longitude);
+          setLocation(locationString);
+          toast.success('Location set successfully');
+        } catch (error: any) {
+          toast.error(error.message || 'Failed to get location name');
+        } finally {
+          setIsGettingLocation(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        toast.error('Failed to get your current location');
+        setIsGettingLocation(false);
+      }
+    );
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -67,18 +100,17 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
       formData.append('userName', userName);
       formData.append('bio', bio);
       formData.append('location', location);
+      formData.append('showLocation', String(showLocation));
       
       if (selectedFile) {
         formData.append('profilePhoto', selectedFile);
       }
 
-      let toastId: string | number | undefined = undefined;
-
       const { user } = await userService.updateUser(userProfile.id, formData);
 
-      toast.success('Profile updated successfully', { id: toastId });
-      setUser(user); // Update global auth state immediately
-      await checkAuth(); // Ensure full sync
+      toast.success('Profile updated successfully');
+      setUser(user);
+      await checkAuth();
       if (onUpdate) onUpdate(user);
       onOpenChange(false);
     } catch (err: any) {
@@ -93,6 +125,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                      userName !== userProfile.userName ||
                      bio !== (userProfile.bio || '') ||
                      location !== (userProfile.location || '') ||
+                     showLocation !== (userProfile.showLocation ?? true) ||
                      selectedFile !== null;
 
   const handleCloseAttempt = (e?: Event) => {
@@ -157,17 +190,45 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
                         </div>
                     </div>
 
-                    <div className="space-y-1">
-                        <Label htmlFor="location" className="text-sm font-bold">Location</Label>
-                        <div className="relative">
-                            <Input
-                                id="location"
-                                placeholder="+ Add location"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="bg-transparent border-none p-0 h-auto text-base text-foreground focus-visible:ring-0 placeholder:text-muted-foreground"
-                            />
-                            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-border" />
+                    <div className="space-y-3">
+                        <Label className="text-sm font-bold">Location</Label>
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+                                    <span className={cn(
+                                        "text-sm break-words whitespace-normal",
+                                        !location && "text-muted-foreground italic"
+                                    )}>
+                                        {location || 'No location set'}
+                                    </span>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleGetLocation}
+                                    disabled={isGettingLocation}
+                                    className="h-8 rounded-full border-zinc-300 dark:border-zinc-600 font-semibold cursor-pointer"
+                                >
+                                    {isGettingLocation ? (
+                                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                                    ) : null}
+                                    {location ? 'Update' : 'Set location'}
+                                </Button>
+                            </div>
+                            
+                            {location && (
+                                <div className="flex items-center justify-between py-2 border-t border-border">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Show on profile</span>
+                                        <span className="text-xs text-muted-foreground">Make your location visible to others</span>
+                                    </div>
+                                    <Switch
+                                        checked={showLocation}
+                                        onCheckedChange={setShowLocation}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -200,7 +261,7 @@ export function EditProfileModal({ open, onOpenChange, userProfile, onUpdate }: 
         <div className="p-6 pt-2">
             <Button 
                 onClick={handleSubmit} 
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl h-12 font-bold transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full bg-transparent border border-zinc-300 dark:border-zinc-600 text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-2xl h-12 font-bold transition-all disabled:opacity-50 cursor-pointer"
                 disabled={isSubmitting}
             >
                 {isSubmitting ? 'Updating...' : 'Done'}

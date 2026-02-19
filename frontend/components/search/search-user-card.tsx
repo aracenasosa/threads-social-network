@@ -11,7 +11,6 @@ interface SearchUserCardProps {
 
 export function SearchUserCard({ user }: SearchUserCardProps) {
   const { user: currentUser } = useAuthStore();
-  const isOwnProfile = currentUser?.id === user.id;
 
   return (
     <div className="flex items-center justify-between py-3 px-4 hover:bg-accent transition-colors">
