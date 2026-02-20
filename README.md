@@ -7,7 +7,7 @@ It consists of two main parts: a high-performance **Frontend** and a robust **Ba
 ## 🏗️ Project Structure
 
 - **[Frontend (Mobile-First Web App)](./frontend/README.md)**
-  - Built with **Next.js 16**, **React 19**, **Tailwind CSS** and **Shadcn UI**.
+  - Built with **Next.js 16**, **React 19** and **Tailwind CSS**.
   - Features optimistic UI updates using **TanStack Query**.
   - Includes a comprehensive design system with **Radix UI** primitives.
   - Includes a comprehensive testing system with **Jest**.

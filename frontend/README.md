@@ -1,6 +1,6 @@
 # 🎨 Social Network Frontend
 
-A modern, responsive, and high-performance web interface for the Social Network application, built with **Next.js 16**, **React 19**, and **Tailwind CSS v4** and **Shadcn UI**. It features a smooth user experience with optimistic UI updates and robust state management.
+A modern, responsive, and high-performance web interface for the Social Network application, built with **Next.js 16**, **React 19** and **Tailwind CSS v4**. It features a smooth user experience with optimistic UI updates and robust state management.
 
 ## ✨ Features
 
