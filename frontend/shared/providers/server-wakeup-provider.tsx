@@ -60,7 +60,7 @@ export function ServerWakeupProvider({ children }: { children: React.ReactNode }
             <div className="space-y-2">
               <h2 className="text-2xl font-bold tracking-tight text-foreground">Server is waking up...</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                The backend service was asleep due to inactivity. This can take around 17 seconds to start securely. Thank you for your patience!
+                The backend service was asleep due to inactivity. This can take around 30-40 seconds to start securely. Thank you for your patience!
               </p>
             </div>
           </div>
