@@ -40,15 +40,9 @@ const allowedOrigins = allowedOriginsStr
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin only in development (like mobile apps or curl requests)
+      // Allow requests with no origin (like mobile apps, curl requests, Next.js SSR, Render health checks)
       if (!origin) {
-        if (isDev() || isTest()) {
-          return callback(null, true);
-        } else {
-          const msg = "Not allowed by CORS";
-          logger.error(msg);
-          return callback(new Error(msg));
-        }
+         return callback(null, true);
       }
 
       if (allowedOrigins.includes(origin)) {
